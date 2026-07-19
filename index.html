@@ -107,7 +107,8 @@
 const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
 
-const DOW = ["Dom","Lun","Mar","Mié","Jué","Vie","Sáb"];
+const DOW = ["Lun","Mar","Mié","Jué","Vie","Sáb","Dom"];
+function mondayIndex(nativeDay) { return (nativeDay + 6) % 7; }
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
 function parseISO(s) {
@@ -177,7 +178,7 @@ function render(talleres) {
     item.id = "t-" + t.id;
     item.innerHTML = `
       <div class="when">
-        <div class="dow">${DOW[d.getUTCDay()]}</div>
+        <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
         <div class="dnum">${d.getUTCDate()}</div>
         <div class="mon">${MESES[d.getUTCMonth()]}</div>
       </div>
@@ -207,7 +208,7 @@ cargarTalleres()
 
 function buildMonth(year, monthIdx, porFecha, HOY) {
   const first = new Date(Date.UTC(year, monthIdx, 1));
-  const startDow = first.getUTCDay();
+  const startDow = mondayIndex(first.getUTCDay());
   const daysInMonth = new Date(Date.UTC(year, monthIdx+1, 0)).getUTCDate();
 
   const card = document.createElement("div");
