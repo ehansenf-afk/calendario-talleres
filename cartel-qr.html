@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cartel QR — Casa Turquesa</title>
+<style>
+  @page { size: letter; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 8.5in; height: 11in;
+    background: #F0EEE8;
+    color: #1D252C;
+    font-family: Helvetica, Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame {
+    width: 7.7in; height: 10.2in;
+    border-top: 2px solid #10CFC9; border-bottom: 2px solid #10CFC9;
+    padding: 6px 0;
+  }
+  .card {
+    background: #FFFFFF; height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0.55in 0.5in 0.4in;
+  }
+  .leaf { width: 0.55in; height: auto; margin-bottom: 0.22in; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #5B6664; margin: 0 0 0.22in; }
+  h1 {
+    font-family: "Times New Roman", Georgia, serif; font-style: italic; font-weight: 400;
+    font-size: 40px; line-height: 1.25; margin: 0 0 0.18in; text-align: center; max-width: 6in;
+  }
+  .desc { font-size: 15px; line-height: 1.6; color: #5B6664; text-align: center; max-width: 5.6in; margin: 0 0 0.4in; }
+  .qrs { display: flex; gap: 0.55in; align-items: flex-start; margin-bottom: 0.35in; }
+  .qr-block { display: flex; flex-direction: column; align-items: center; width: 2.6in; }
+  .qr-block img { width: 2in; height: 2in; border: 1px solid #E8E4DA; }
+  .qr-label { margin-top: 0.16in; font-size: 15px; font-weight: 700; color: #1D252C; text-align: center; }
+  .qr-sub { margin-top: 4px; font-size: 12.5px; color: #5B6664; text-align: center; max-width: 2.3in; line-height: 1.4; }
+  .divider { width: 1px; align-self: stretch; background: #E8E4DA; margin-top: 0.15in; }
+  .footer-info {
+    margin-top: auto; text-align: center; border-top: 1px solid #E8E4DA; padding-top: 0.28in; width: 100%;
+  }
+  .footer-info .direccion { font-size: 14px; color: #1D252C; font-weight: 700; margin: 0 0 4px; }
+  .footer-info .ig { font-size: 13px; color: #007A8A; margin: 0; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="card">
+    <svg class="leaf" viewBox="0 0 46 49" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 3C23 3 8 12 8 27C8 36.5 14.5 44 23 44C31.5 44 38 36.5 38 27C38 12 23 3 23 3Z" stroke="#007A8A" stroke-width="1.6"/>
+      <path d="M23 44V17" stroke="#007A8A" stroke-width="1.6"/>
+      <path d="M23 24C23 24 17 21 15 15" stroke="#007A8A" stroke-width="1.4"/>
+      <path d="M23 32C23 32 30 28 32 21" stroke="#007A8A" stroke-width="1.4"/>
+    </svg>
+    <p class="eyebrow">Casa Turquesa · Ñuñoa</p>
+    <h1>Aprende, comparte y crea con nosotros</h1>
+    <p class="desc">Cada semana abrimos la casa para talleres de cerámica, cocina, tejido y bienestar. Escanea para descubrir más.</p>
+
+    <div class="qrs">
+      <div class="qr-block">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://calendario-talleres.vercel.app&color=29-37-44&bgcolor=255-255-255" alt="QR Calendario de talleres">
+        <p class="qr-label">Ver el calendario</p>
+        <p class="qr-sub">Revisa qué talleres tenemos esta semana y sus horarios</p>
+      </div>
+      <div class="divider"></div>
+      <div class="qr-block">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=https://formulario-talleres-casa-turquesa.vercel.app&color=29-37-44&bgcolor=255-255-255" alt="QR Formulario de inscripción">
+        <p class="qr-label">Sé parte de la comunidad</p>
+        <p class="qr-sub">Déjanos tus datos y avísate primero de los talleres nuevos</p>
+      </div>
+    </div>
+
+    <div class="footer-info">
+      <p class="direccion">Ortúzar 250, Ñuñoa</p>
+      <p class="ig">@casaturquesa.cl</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
