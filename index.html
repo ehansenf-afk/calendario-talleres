@@ -82,6 +82,33 @@
   .contact a:hover { text-decoration: underline; }
   footer { text-align: center; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; color: var(--ink-soft); padding-top: 8px; }
   a.focus-visible, button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  .searchbar { position: relative; }
+  .searchbar input {
+    width: 100%; max-width: 340px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13.5px;
+    padding: 9px 14px 9px 34px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper);
+    color: var(--ink); outline: none; transition: border-color 0.15s;
+  }
+  .searchbar input:focus { border-color: var(--teal); }
+  .searchbar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--ink-soft); pointer-events: none; }
+  .searchbar .clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 15px; padding: 2px 6px; display: none; }
+  .searchbar.has-text .clear { display: block; }
+
+  .dot.hidden-match { opacity: 0.22; filter: grayscale(0.6); }
+  .item.hidden-match { display: none; }
+  .no-results { padding: 22px; text-align: center; color: var(--ink-soft); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; }
+
+  .tt {
+    position: fixed; z-index: 50; max-width: 240px; background: var(--ink); color: var(--paper);
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; line-height: 1.45; padding: 10px 12px;
+    border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); pointer-events: none; opacity: 0; transform: translateY(4px);
+    transition: opacity 0.12s, transform 0.12s;
+  }
+  .tt.show { opacity: 1; transform: translateY(0); }
+  .tt .tt-title { font-weight: 700; margin-bottom: 3px; font-family: "Iowan Old Style", Georgia, serif; font-size: 13px; }
+  .tt .tt-meta { opacity: 0.75; font-size: 11px; margin-bottom: 4px; }
+  .tt .tt-desc { opacity: 0.92; }
+  @media (prefers-color-scheme: dark) { .tt { background: #eee7db; color: #16211f; } }
 </style>
 </head>
 <body>
@@ -91,7 +118,14 @@
       <p class="eyebrow">Casa Turquesa · Ñuñoa</p>
       <h1>Calendario de talleres</h1>
     </div>
-    <p class="count"><b id="countNum">0</b> talleres activos</p>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      <p class="count"><b id="countNum">0</b> talleres activos</p>
+      <div class="searchbar" id="searchbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="buscador" placeholder="Buscar taller o tallerista…" autocomplete="off">
+        <button class="clear" id="clearBtn" aria-label="Limpiar búsqueda">✕</button>
+      </div>
+    </div>
   </header>
 
   <div class="months" id="months"></div>
@@ -103,6 +137,7 @@
 
   <footer id="footerNote">Cargando desde Supabase…</footer>
 </div>
+<div class="tt" id="tooltip"></div>
 
 <script>
 const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
@@ -186,6 +221,8 @@ function render(talleres) {
     const item = document.createElement("div");
     item.className = "item";
     item.id = "t-" + t.id;
+    item.dataset.titulo = t.titulo;
+    item.dataset.tallerista = t.tallerista;
     item.innerHTML = `
       <div class="when">
         <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
@@ -210,11 +247,80 @@ function render(talleres) {
   });
 }
 
+let TODOS_TALLERES = [];
+
 cargarTalleres()
-  .then(render)
+  .then(talleres => { TODOS_TALLERES = talleres; render(talleres); })
   .catch(err => {
     document.getElementById("footerNote").textContent = "Error al cargar desde Supabase: " + err.message;
   });
+
+function normaliza(s) {
+  return (s || "").toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+function aplicarBusqueda() {
+  const q = normaliza(document.getElementById("buscador").value.trim());
+  document.getElementById("searchbar").classList.toggle("has-text", q.length > 0);
+
+  let visibles = 0;
+  document.querySelectorAll(".dot").forEach(btn => {
+    const match = !q || normaliza(btn.dataset.titulo).includes(q) || normaliza(btn.dataset.tallerista).includes(q);
+    btn.classList.toggle("hidden-match", !match);
+  });
+
+  document.querySelectorAll(".item").forEach(item => {
+    const match = !q || normaliza(item.dataset.titulo).includes(q) || normaliza(item.dataset.tallerista).includes(q);
+    item.classList.toggle("hidden-match", !match);
+    if (match) visibles++;
+  });
+
+  let noRes = document.getElementById("noResultsMsg");
+  if (visibles === 0 && q) {
+    if (!noRes) {
+      noRes = document.createElement("div");
+      noRes.id = "noResultsMsg";
+      noRes.className = "no-results";
+      document.getElementById("listItems").appendChild(noRes);
+    }
+    noRes.textContent = `No encontramos talleres que coincidan con "${document.getElementById("buscador").value.trim()}".`;
+  } else if (noRes) {
+    noRes.remove();
+  }
+}
+
+document.getElementById("buscador").addEventListener("input", aplicarBusqueda);
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.getElementById("buscador").value = "";
+  aplicarBusqueda();
+  document.getElementById("buscador").focus();
+});
+
+const tooltip = document.getElementById("tooltip");
+function mostrarTooltip(e, t) {
+  const partes = [];
+  partes.push(`🕐 ${t.hora} hrs`);
+  if (t.tallerista) partes.push(`🎨 ${t.tallerista}`);
+  tooltip.innerHTML = `
+    <div class="tt-title">${t.titulo}</div>
+    <div class="tt-meta">${partes.join(" · ")}${t.precio == null ? " · Precio por confirmar" : " · " + money(t.precio)}</div>
+    ${t.desc ? `<div class="tt-desc">${t.desc}</div>` : ""}
+  `;
+  tooltip.classList.add("show");
+  posicionarTooltip(e);
+}
+function posicionarTooltip(e) {
+  const pad = 14;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  const rect = tooltip.getBoundingClientRect();
+  if (x + rect.width > window.innerWidth - 10) x = e.clientX - rect.width - pad;
+  if (y + rect.height > window.innerHeight - 10) y = e.clientY - rect.height - pad;
+  tooltip.style.left = x + "px";
+  tooltip.style.top = y + "px";
+}
+function ocultarTooltip() {
+  tooltip.classList.remove("show");
+}
 
 function buildMonth(year, monthIdx, porFecha, HOY) {
   const first = new Date(Date.UTC(year, monthIdx, 1));
@@ -255,8 +361,12 @@ function buildMonth(year, monthIdx, porFecha, HOY) {
         const btn = document.createElement("button");
         btn.className = "dot";
         btn.textContent = t.titulo.replace(/ — sesión.*/, "");
-        btn.title = t.titulo;
+        btn.dataset.titulo = t.titulo;
+        btn.dataset.tallerista = t.tallerista;
         btn.onclick = () => jumpTo(t.id);
+        btn.addEventListener("mouseenter", (e) => mostrarTooltip(e, t));
+        btn.addEventListener("mousemove", posicionarTooltip);
+        btn.addEventListener("mouseleave", ocultarTooltip);
         wrap.appendChild(btn);
       });
       td.appendChild(wrap);
