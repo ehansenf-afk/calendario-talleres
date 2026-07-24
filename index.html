@@ -147,26 +147,6 @@ async function cargarTalleres() {
   }));
 }
 
-async function cargarReservasGrandes() {
-  const url = SUPABASE_URL + "/rest/v1/reservas?estado=eq.activa&personas=gte.15&select=id,fecha,hora,personas,nombre_contacto&order=fecha,hora";
-  const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
-  if (!res.ok) return [];
-  const rows = await res.json();
-  return rows.map(r => {
-    const horaIni = hhmm(r.hora);
-    const primerNombre = (r.nombre_contacto || "").trim().split(/\s+/)[0] || "Reserva";
-    return {
-      tipo: "reserva",
-      id: "reserva-" + r.id,
-      titulo: "Reserva de evento — " + primerNombre,
-      fecha: r.fecha,
-      hora: horaIni,
-      horaFin: horaMasHoras(horaIni, 4),
-      personas: r.personas
-    };
-  });
-}
-
 function render(talleres) {
   const hoyDate = new Date();
   const HOY = hoyDate.toISOString().slice(0,10);
@@ -174,8 +154,8 @@ function render(talleres) {
   const porFecha = {};
   talleres.forEach(t => { (porFecha[t.fecha] = porFecha[t.fecha] || []).push(t); });
 
-  document.getElementById("countNum").textContent = talleres.filter(t => t.tipo === "taller").length;
-  document.getElementById("footerNote").innerHTML = 'Datos en vivo desde Supabase · tablas <code>talleres</code> y <code>reservas</code> · actualizado ' + hoyDate.toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" });
+  document.getElementById("countNum").textContent = talleres.length;
+  document.getElementById("footerNote").innerHTML = 'Datos en vivo desde Supabase · tabla <code>talleres</code>, estado activo · actualizado ' + hoyDate.toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" });
 
   let startYear = hoyDate.getUTCFullYear();
   let startMonth = hoyDate.getUTCMonth();
@@ -206,24 +186,6 @@ function render(talleres) {
     const item = document.createElement("div");
     item.className = "item";
     item.id = "t-" + t.id;
-    if (t.tipo === "reserva") {
-      item.innerHTML = `
-        <div class="when">
-          <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
-          <div class="dnum">${d.getUTCDate()}</div>
-          <div class="mon">${MESES[d.getUTCMonth()]}</div>
-        </div>
-        <div class="body">
-          <h3>${t.titulo}</h3>
-          <div class="meta">
-            <span>🕐 ${t.hora}–${t.horaFin} hrs (ocupado)</span>
-          </div>
-        </div>
-        <div class="side"></div>
-      `;
-      listWrap.appendChild(item);
-      return;
-    }
     item.innerHTML = `
       <div class="when">
         <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
@@ -248,8 +210,8 @@ function render(talleres) {
   });
 }
 
-Promise.all([cargarTalleres(), cargarReservasGrandes()])
-  .then(([talleres, reservas]) => render(talleres.concat(reservas)))
+cargarTalleres()
+  .then(render)
   .catch(err => {
     document.getElementById("footerNote").textContent = "Error al cargar desde Supabase: " + err.message;
   });
@@ -291,7 +253,7 @@ function buildMonth(year, monthIdx, porFecha, HOY) {
       wrap.className = "dot-row";
       items.forEach(t => {
         const btn = document.createElement("button");
-        btn.className = "dot" + (t.tipo === "reserva" ? " reserva" : "");
+        btn.className = "dot";
         btn.textContent = t.titulo.replace(/ — sesión.*/, "");
         btn.title = t.titulo;
         btn.onclick = () => jumpTo(t.id);
