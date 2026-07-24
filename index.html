@@ -61,6 +61,7 @@
   .dot-row { margin-top: 3px; display: flex; flex-direction: column; gap: 2px; }
   .dot { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 10px; line-height: 1.25; background: var(--teal-soft); color: var(--teal); padding: 1.5px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; border: none; text-align: left; display: block; width: 100%; font-weight: 600; }
   .dot:hover { filter: brightness(0.95); }
+  .dot.reserva { background: var(--gold-soft); color: var(--gold); }
   .list { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); padding: 4px 0; }
   .list h2 { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; margin: 0; padding: 18px 22px 10px; }
   .item { display: grid; grid-template-columns: 84px 1fr auto; gap: 18px; align-items: start; padding: 16px 22px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
@@ -118,12 +119,21 @@ function parseISO(s) {
 function money(n) { return "$" + n.toLocaleString("es-CL"); }
 function hhmm(t) { return t ? t.slice(0,5) : ""; }
 
+function horaMasHoras(hhmmStr, horas) {
+  if (!hhmmStr) return "";
+  const [h, mnt] = hhmmStr.split(":").map(Number);
+  const total = (h * 60 + mnt + horas * 60) % (24 * 60);
+  const h2 = Math.floor(total / 60), m2 = total % 60;
+  return String(h2).padStart(2,"0") + ":" + String(m2).padStart(2,"0");
+}
+
 async function cargarTalleres() {
   const url = SUPABASE_URL + "/rest/v1/talleres?estado=eq.activo&select=*&order=fecha,hora";
   const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
   if (!res.ok) throw new Error("Supabase respondió " + res.status);
   const rows = await res.json();
   return rows.map(r => ({
+    tipo: "taller",
     id: r.id,
     titulo: r.titulo,
     fecha: r.fecha,
@@ -137,6 +147,26 @@ async function cargarTalleres() {
   }));
 }
 
+async function cargarReservasGrandes() {
+  const url = SUPABASE_URL + "/rest/v1/reservas?estado=eq.activa&personas=gte.15&select=id,fecha,hora,personas,nombre_contacto&order=fecha,hora";
+  const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
+  if (!res.ok) return [];
+  const rows = await res.json();
+  return rows.map(r => {
+    const horaIni = hhmm(r.hora);
+    const primerNombre = (r.nombre_contacto || "").trim().split(/\s+/)[0] || "Reserva";
+    return {
+      tipo: "reserva",
+      id: "reserva-" + r.id,
+      titulo: "Reserva de evento — " + primerNombre,
+      fecha: r.fecha,
+      hora: horaIni,
+      horaFin: horaMasHoras(horaIni, 4),
+      personas: r.personas
+    };
+  });
+}
+
 function render(talleres) {
   const hoyDate = new Date();
   const HOY = hoyDate.toISOString().slice(0,10);
@@ -144,8 +174,8 @@ function render(talleres) {
   const porFecha = {};
   talleres.forEach(t => { (porFecha[t.fecha] = porFecha[t.fecha] || []).push(t); });
 
-  document.getElementById("countNum").textContent = talleres.length;
-  document.getElementById("footerNote").innerHTML = 'Datos en vivo desde Supabase · tabla <code>talleres</code>, estado activo · actualizado ' + hoyDate.toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" });
+  document.getElementById("countNum").textContent = talleres.filter(t => t.tipo === "taller").length;
+  document.getElementById("footerNote").innerHTML = 'Datos en vivo desde Supabase · tablas <code>talleres</code> y <code>reservas</code> · actualizado ' + hoyDate.toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" });
 
   let startYear = hoyDate.getUTCFullYear();
   let startMonth = hoyDate.getUTCMonth();
@@ -176,6 +206,24 @@ function render(talleres) {
     const item = document.createElement("div");
     item.className = "item";
     item.id = "t-" + t.id;
+    if (t.tipo === "reserva") {
+      item.innerHTML = `
+        <div class="when">
+          <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
+          <div class="dnum">${d.getUTCDate()}</div>
+          <div class="mon">${MESES[d.getUTCMonth()]}</div>
+        </div>
+        <div class="body">
+          <h3>${t.titulo}</h3>
+          <div class="meta">
+            <span>🕐 ${t.hora}–${t.horaFin} hrs (ocupado)</span>
+          </div>
+        </div>
+        <div class="side"></div>
+      `;
+      listWrap.appendChild(item);
+      return;
+    }
     item.innerHTML = `
       <div class="when">
         <div class="dow">${DOW[mondayIndex(d.getUTCDay())]}</div>
@@ -200,8 +248,8 @@ function render(talleres) {
   });
 }
 
-cargarTalleres()
-  .then(render)
+Promise.all([cargarTalleres(), cargarReservasGrandes()])
+  .then(([talleres, reservas]) => render(talleres.concat(reservas)))
   .catch(err => {
     document.getElementById("footerNote").textContent = "Error al cargar desde Supabase: " + err.message;
   });
@@ -243,7 +291,7 @@ function buildMonth(year, monthIdx, porFecha, HOY) {
       wrap.className = "dot-row";
       items.forEach(t => {
         const btn = document.createElement("button");
-        btn.className = "dot";
+        btn.className = "dot" + (t.tipo === "reserva" ? " reserva" : "");
         btn.textContent = t.titulo.replace(/ — sesión.*/, "");
         btn.title = t.titulo;
         btn.onclick = () => jumpTo(t.id);
