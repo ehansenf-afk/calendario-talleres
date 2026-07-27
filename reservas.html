@@ -328,14 +328,15 @@ function render() {
   const q = document.getElementById("buscar").value.toLowerCase();
   const soloActivas = document.getElementById("filtroEstado").value === "activa";
 
+  const hoyDate = new Date();
+  const HOY = hoyDate.toISOString().slice(0,10);
+
   let items = TODOS.filter(r => {
+    if (r.fecha < HOY) return false;
     if (soloActivas && r.estado === "cancelada") return false;
     if (!q) return true;
     return r.nombre.toLowerCase().includes(q) || (r.idReserva || "").toLowerCase().includes(q) || (r.whatsapp || "").includes(q);
   });
-
-  const hoyDate = new Date();
-  const HOY = hoyDate.toISOString().slice(0,10);
 
   const porFecha = {};
   items.forEach(r => { (porFecha[r.fecha] = porFecha[r.fecha] || []).push(r); });
