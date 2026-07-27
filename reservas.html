@@ -216,6 +216,11 @@
         <label for="descripcionTaller">Descripción</label>
         <textarea id="descripcionTaller" placeholder="Descripción del taller..."></textarea>
       </div>
+      <div class="full campo-taller oculto">
+        <label for="flyerFile">Flyer del taller (opcional)</label>
+        <input type="file" id="flyerFile" accept="image/*">
+        <p class="hint">Se muestra como imagen extra al ver el detalle del taller.</p>
+      </div>
 
       <div class="full">
         <button type="submit" class="btn-primario" id="btnGuardar">Guardar reserva</button>
@@ -320,6 +325,7 @@ async function cargarTodo() {
     tallerista: t.tallerista || "",
     whatsapp: t.contacto_whatsapp || "",
     personas: t.capacidad || 0,
+    imagenUrl: t.imagen_url || null,
     estado: "activa"
   }));
   return reservas.concat(talleres);
@@ -385,6 +391,7 @@ function render() {
         <div class="body">
           <h3>${r.nombre}</h3>
           <div class="meta"><span>🕐 ${r.hora} hrs</span><span>🎨 ${r.tallerista}</span></div>
+          ${r.imagenUrl ? `<img src="${r.imagenUrl}" alt="Flyer del taller" style="max-width:220px;border-radius:6px;margin-top:8px;display:block;">` : ""}
         </div>
         <div class="side"><div class="tag tag-taller">Taller</div></div>
       `;
@@ -583,6 +590,24 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     mensajeOk = () => "✅ Reserva guardada con código " + payload.id_reserva;
   } else {
     const precioVal = document.getElementById("precio").value;
+    let imagenUrl = null;
+    const flyerFile = document.getElementById("flyerFile").files[0];
+    if (flyerFile) {
+      try {
+        btn.textContent = "Subiendo flyer...";
+        const nombreArchivo = "talleres/" + Date.now() + "-" + flyerFile.name.replace(/[^a-zA-Z0-9._-]/g, "");
+        const up = await fetch(SUPABASE_URL + "/storage/v1/object/newsletter/" + nombreArchivo, {
+          method: "POST",
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": flyerFile.type },
+          body: flyerFile
+        });
+        if (up.ok) {
+          imagenUrl = SUPABASE_URL + "/storage/v1/object/public/newsletter/" + nombreArchivo;
+        }
+      } catch (errFlyer) { /* si falla la subida, seguimos sin flyer */ }
+      btn.textContent = "Guardando...";
+    }
+
     payload = {
       negocio_id: NEGOCIO_ID,
       titulo: document.getElementById("titulo").value.trim(),
@@ -595,6 +620,7 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
       contacto_whatsapp: document.getElementById("contactoWhatsapp").value.trim() || null,
       contacto_instagram: document.getElementById("contactoInstagram").value.trim() || null,
       descripcion: document.getElementById("descripcionTaller").value.trim() || null,
+      imagen_url: imagenUrl,
       estado: "activo",
       notificado: false,
       cupos_agotados: false
