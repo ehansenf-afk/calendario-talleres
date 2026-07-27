@@ -77,6 +77,14 @@
   .campos-reserva, .campos-taller { display: contents; }
   .oculto { display: none !important; }
 
+  .acciones { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
+  .acciones button {
+    font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 5px; padding: 4px 9px; cursor: pointer; background: var(--bg); color: var(--ink-soft);
+  }
+  .acciones button:hover { background: var(--line); }
+  .acciones .btn-eliminar:hover { background: var(--crit-soft); color: var(--crit); border-color: var(--crit); }
+
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .toolbar input[type="search"] { flex: 1; min-width: 180px; }
 
@@ -304,6 +312,7 @@ async function cargarTodo() {
   const reservas = (await resR.json()).map(r => ({
     tipo: "reserva",
     id: "r-" + r.id,
+    rawId: r.id,
     idReserva: r.id_reserva || "",
     fecha: r.fecha,
     hora: hhmm(r.hora),
@@ -319,12 +328,17 @@ async function cargarTodo() {
   const talleres = (await resT.json()).map(t => ({
     tipo: "taller",
     id: "t-" + t.id,
+    rawId: t.id,
     fecha: t.fecha,
     hora: hhmm(t.hora),
     nombre: t.titulo,
     tallerista: t.tallerista || "",
     whatsapp: t.contacto_whatsapp || "",
+    instagram: t.contacto_instagram || "",
     personas: t.capacidad || 0,
+    precio: t.precio,
+    coffeeBreak: t.coffee_break || "",
+    descripcion: t.descripcion || "",
     imagenUrl: t.imagen_url || null,
     estado: "activa"
   }));
@@ -393,7 +407,13 @@ function render() {
           <div class="meta"><span>🕐 ${r.hora} hrs</span><span>🎨 ${r.tallerista}</span></div>
           ${r.imagenUrl ? `<img src="${r.imagenUrl}" alt="Flyer del taller" style="max-width:220px;border-radius:6px;margin-top:8px;display:block;">` : ""}
         </div>
-        <div class="side"><div class="tag tag-taller">Taller</div></div>
+        <div class="side">
+          <div class="tag tag-taller">Taller</div>
+          <div class="acciones">
+            <button type="button" class="btn-editar" data-editar="${r.id}">✏️ Editar</button>
+            <button type="button" class="btn-eliminar" data-eliminar="${r.id}">🗑️ Eliminar</button>
+          </div>
+        </div>
       `;
     } else {
       item.innerHTML = `
@@ -417,6 +437,10 @@ function render() {
           ${r.idReserva ? `<div class="codigo">${r.idReserva}</div>` : ""}
           ${r.plataforma ? `<div class="tag tag-reserva">${r.plataforma}</div>` : ""}
           ${cancelada ? '<div class="estado-cancelada">Cancelada</div>' : ""}
+          <div class="acciones">
+            <button type="button" class="btn-editar" data-editar="${r.id}">✏️ Editar</button>
+            <button type="button" class="btn-eliminar" data-eliminar="${r.id}">🗑️ Eliminar</button>
+          </div>
         </div>
       `;
     }
@@ -488,6 +512,101 @@ function jumpTo(id) {
 }
 
 let TIPO_ACTUAL = "reserva";
+let EDITING_ID = null;
+let EDITING_TIPO = null;
+let EDITING_CODIGO_RESERVA = null;
+let EDITING_IMAGEN_URL = null;
+
+function cancelarEdicion() {
+  EDITING_ID = null;
+  EDITING_TIPO = null;
+  EDITING_CODIGO_RESERVA = null;
+  EDITING_IMAGEN_URL = null;
+  document.getElementById("btnGuardar").textContent = TIPO_ACTUAL === "reserva" ? "Guardar reserva" : "Guardar taller";
+  const cancelBtn = document.getElementById("btnCancelarEdicion");
+  if (cancelBtn) cancelBtn.remove();
+}
+
+function iniciarEdicion(idComposite) {
+  const item = TODOS.find(r => r.id === idComposite);
+  if (!item) return;
+
+  cambiarTipo(item.tipo);
+  EDITING_ID = item.rawId;
+  EDITING_TIPO = item.tipo;
+
+  document.getElementById("fecha").value = item.fecha;
+  poblarHoras(item.fecha);
+  document.getElementById("hora").value = item.hora;
+
+  if (item.tipo === "reserva") {
+    EDITING_CODIGO_RESERVA = item.idReserva;
+    document.getElementById("nombre").value = item.nombre || "";
+    document.getElementById("rut").value = item.rut || "";
+    document.getElementById("whatsapp").value = item.whatsapp || "";
+    document.getElementById("correo").value = item.correo || "";
+    document.getElementById("personas").value = item.personas || "";
+    document.getElementById("plataforma").value = item.plataforma || "";
+    document.getElementById("nota").value = item.nota || "";
+  } else {
+    EDITING_IMAGEN_URL = item.imagenUrl || null;
+    document.getElementById("titulo").value = item.nombre || "";
+    document.getElementById("tallerista").value = item.tallerista || "";
+    document.getElementById("capacidad").value = item.personas || "";
+    document.getElementById("precio").value = item.precio != null ? item.precio : "";
+    document.getElementById("coffeeBreak").value = item.coffeeBreak || "";
+    document.getElementById("contactoWhatsapp").value = item.whatsapp || "";
+    document.getElementById("contactoInstagram").value = item.instagram || "";
+    document.getElementById("descripcionTaller").value = item.descripcion || "";
+  }
+
+  document.getElementById("tituloForm").textContent = item.tipo === "reserva" ? "✏️ Editar reserva" : "✏️ Editar taller";
+  document.getElementById("btnGuardar").textContent = "Guardar cambios";
+
+  if (!document.getElementById("btnCancelarEdicion")) {
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.id = "btnCancelarEdicion";
+    cancelBtn.textContent = "Cancelar edición";
+    cancelBtn.style.cssText = "margin-left:8px;background:none;border:1px solid var(--line);border-radius:6px;padding:11px 16px;font-size:13px;cursor:pointer;color:var(--ink-soft);font-family:ui-sans-serif,system-ui,sans-serif;";
+    cancelBtn.addEventListener("click", () => {
+      document.getElementById("formReserva").reset();
+      document.getElementById("hora").innerHTML = "";
+      cancelarEdicion();
+      cambiarTipo("reserva");
+    });
+    document.getElementById("btnGuardar").insertAdjacentElement("afterend", cancelBtn);
+  }
+
+  document.querySelector(".panel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function eliminarItem(idComposite) {
+  const item = TODOS.find(r => r.id === idComposite);
+  if (!item) return;
+  const etiqueta = item.tipo === "reserva" ? "la reserva de " + item.nombre : "el taller \"" + item.nombre + "\"";
+  if (!confirm("¿Seguro que quieres eliminar " + etiqueta + "? Esta acción no se puede deshacer.")) return;
+
+  const tabla = item.tipo === "reserva" ? "reservas" : "talleres";
+  try {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/" + tabla + "?id=eq." + item.rawId, {
+      method: "DELETE",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, Prefer: "return=minimal" }
+    });
+    if (!res.ok) throw new Error("Error " + res.status);
+    TODOS = await cargarTodo();
+    render();
+  } catch (err) {
+    alert("No se pudo eliminar. Intenta de nuevo.");
+  }
+}
+
+document.getElementById("listItems").addEventListener("click", (e) => {
+  const btnEditar = e.target.closest("[data-editar]");
+  if (btnEditar) { iniciarEdicion(btnEditar.dataset.editar); return; }
+  const btnEliminar = e.target.closest("[data-eliminar]");
+  if (btnEliminar) { eliminarItem(btnEliminar.dataset.eliminar); return; }
+});
 
 function setCampoRequerido(id, requerido) {
   const el = document.getElementById(id);
@@ -569,12 +688,13 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
   btn.textContent = "Guardando...";
 
   const esReserva = TIPO_ACTUAL === "reserva";
+  const esEdicion = !!EDITING_ID;
   let payload, url, mensajeOk;
 
   if (esReserva) {
     payload = {
       negocio_id: NEGOCIO_ID,
-      id_reserva: generarCodigo(),
+      id_reserva: esEdicion ? EDITING_CODIGO_RESERVA : generarCodigo(),
       fecha: document.getElementById("fecha").value,
       hora: document.getElementById("hora").value + ":00",
       nombre_contacto: document.getElementById("nombre").value.trim(),
@@ -606,6 +726,8 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
         }
       } catch (errFlyer) { /* si falla la subida, seguimos sin flyer */ }
       btn.textContent = "Guardando...";
+    } else if (esEdicion && EDITING_IMAGEN_URL) {
+      imagenUrl = EDITING_IMAGEN_URL; // mantener el flyer existente si no se subió uno nuevo
     }
 
     payload = {
@@ -629,9 +751,11 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     mensajeOk = () => "✅ Taller guardado: " + payload.titulo;
   }
 
+  const urlFinal = esEdicion ? (url + "?id=eq." + EDITING_ID) : url;
+
   try {
-    const res = await fetch(url, {
-      method: "POST",
+    const res = await fetch(urlFinal, {
+      method: esEdicion ? "PATCH" : "POST",
       headers: {
         apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
         "Content-Type": "application/json", Prefer: "return=minimal"
@@ -641,10 +765,11 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     if (!res.ok) throw new Error("Error " + res.status);
 
     msg.classList.add("ok");
-    msg.textContent = mensajeOk();
+    msg.textContent = esEdicion ? "✅ Cambios guardados" : mensajeOk();
     document.getElementById("formReserva").reset();
     document.getElementById("hora").innerHTML = "";
     document.getElementById("slotWarning").classList.remove("show");
+    cancelarEdicion();
     cambiarTipo(TIPO_ACTUAL);
 
     TODOS = await cargarTodo();
