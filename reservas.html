@@ -161,6 +161,12 @@
         <p class="slot-warning" id="slotWarning">Ese horario ya está ocupado — revisa el calendario antes de confirmar.</p>
       </div>
 
+      <div class="full campo-taller oculto" id="bloqueFechasExtra">
+        <label>Más fechas (mismo taller, misma hora)</label>
+        <div id="fechasExtra"></div>
+        <button type="button" id="btnAgregarFecha" style="margin-top:6px;background:none;border:1px dashed var(--line);border-radius:6px;padding:7px 12px;font-size:12.5px;cursor:pointer;color:var(--teal);font-family:ui-sans-serif,system-ui,sans-serif;">+ Agregar otra fecha</button>
+      </div>
+
       <!-- Campos de RESERVA -->
       <div class="campo-reserva">
         <label for="nombre">Nombre</label>
@@ -538,6 +544,8 @@ function iniciarEdicion(idComposite) {
   document.getElementById("fecha").value = item.fecha;
   poblarHoras(item.fecha);
   document.getElementById("hora").value = item.hora;
+  limpiarFechasExtra();
+  document.getElementById("bloqueFechasExtra").classList.add("oculto");
 
   if (item.tipo === "reserva") {
     EDITING_CODIGO_RESERVA = item.idReserva;
@@ -595,8 +603,8 @@ async function eliminarItem(idComposite) {
     });
     if (!res.ok) throw new Error("Error " + res.status);
 
-    const etiqueta = item.tipo === "reserva" ? "Reserva" : "Taller";
-    avisarGrupo("🗑️ *" + etiqueta + " eliminada*\n\n" + item.nombre + "\n📅 " + item.fecha + " · 🕐 " + item.hora + " hrs");
+    const etiquetaTipo = item.tipo === "reserva" ? "Reserva" : "Taller";
+    avisarGrupo("🗑️ *" + etiquetaTipo + " eliminada*\n\n" + item.nombre + "\n📅 " + item.fecha + " · 🕐 " + item.hora + " hrs");
 
     TODOS = await cargarTodo();
     render();
@@ -678,6 +686,22 @@ function chequearOcupado() {
   }
 
   warning.classList.toggle("show", ocupado);
+}
+
+let contadorFechaExtra = 0;
+document.getElementById("btnAgregarFecha").addEventListener("click", () => {
+  contadorFechaExtra++;
+  const id = "fechaExtra" + contadorFechaExtra;
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px;";
+  row.innerHTML = `<input type="date" id="${id}" min="${new Date().toISOString().slice(0,10)}" style="flex:1;">
+    <button type="button" style="background:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--crit);font-family:ui-sans-serif,system-ui,sans-serif;">✕</button>`;
+  row.querySelector("button").addEventListener("click", () => row.remove());
+  document.getElementById("fechasExtra").appendChild(row);
+});
+
+function limpiarFechasExtra() {
+  document.getElementById("fechasExtra").innerHTML = "";
 }
 
 const hoyInput = document.getElementById("fecha");
@@ -769,6 +793,16 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     }
     url = SUPABASE_URL + "/rest/v1/talleres";
     mensajeOk = () => "✅ Taller guardado: " + payload.titulo;
+
+    if (!esEdicion) {
+      const fechasExtra = Array.from(document.querySelectorAll("#fechasExtra input[type=date]"))
+        .map(i => i.value).filter(Boolean);
+      if (fechasExtra.length > 0) {
+        const todasLasFechas = [payload.fecha, ...fechasExtra];
+        payload = todasLasFechas.map(f => Object.assign({}, payload, { fecha: f }));
+        mensajeOk = () => "✅ Taller guardado en " + todasLasFechas.length + " fechas";
+      }
+    }
   }
 
   const urlFinal = esEdicion ? (url + "?id=eq." + EDITING_ID) : url;
