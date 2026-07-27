@@ -594,6 +594,10 @@ async function eliminarItem(idComposite) {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, Prefer: "return=minimal" }
     });
     if (!res.ok) throw new Error("Error " + res.status);
+
+    const etiqueta = item.tipo === "reserva" ? "Reserva" : "Taller";
+    avisarGrupo("🗑️ *" + etiqueta + " eliminada*\n\n" + item.nombre + "\n📅 " + item.fecha + " · 🕐 " + item.hora + " hrs");
+
     TODOS = await cargarTodo();
     render();
   } catch (err) {
@@ -679,6 +683,20 @@ function chequearOcupado() {
 const hoyInput = document.getElementById("fecha");
 hoyInput.min = new Date().toISOString().slice(0,10);
 
+const EVOLUTION_URL = "https://mis-negocios-evolution-api.u7xiga.easypanel.host/message/sendText/Casa%20Turquesa%20-%20Laboral";
+const EVOLUTION_KEY = "429683C4C977415CAAFCCE10F7D57E11";
+const GRUPO_EQUIPO_CT = "56981881447-1630429070@g.us";
+
+async function avisarGrupo(texto) {
+  try {
+    await fetch(EVOLUTION_URL, {
+      method: "POST",
+      headers: { apikey: EVOLUTION_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ number: GRUPO_EQUIPO_CT, text: texto })
+    });
+  } catch (e) { /* si falla el aviso, no bloqueamos el flujo */ }
+}
+
 document.getElementById("formReserva").addEventListener("submit", async (e) => {
   e.preventDefault();
   const btn = document.getElementById("btnGuardar");
@@ -743,10 +761,12 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
       contacto_instagram: document.getElementById("contactoInstagram").value.trim() || null,
       descripcion: document.getElementById("descripcionTaller").value.trim() || null,
       imagen_url: imagenUrl,
-      estado: "activo",
-      notificado: false,
-      cupos_agotados: false
+      estado: "activo"
     };
+    if (!esEdicion) {
+      payload.notificado = false;
+      payload.cupos_agotados = false;
+    }
     url = SUPABASE_URL + "/rest/v1/talleres";
     mensajeOk = () => "✅ Taller guardado: " + payload.titulo;
   }
@@ -766,6 +786,13 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
 
     msg.classList.add("ok");
     msg.textContent = esEdicion ? "✅ Cambios guardados" : mensajeOk();
+
+    if (esEdicion) {
+      const etiqueta = esReserva ? "Reserva" : "Taller";
+      const nombreItem = esReserva ? payload.nombre_contacto : payload.titulo;
+      avisarGrupo("✏️ *" + etiqueta + " modificada*\n\n" + nombreItem + "\n📅 " + payload.fecha + " · 🕐 " + payload.hora.slice(0,5) + " hrs");
+    }
+
     document.getElementById("formReserva").reset();
     document.getElementById("hora").innerHTML = "";
     document.getElementById("slotWarning").classList.remove("show");
