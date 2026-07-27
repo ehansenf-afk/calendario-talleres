@@ -500,6 +500,8 @@ function cambiarTipo(tipo) {
 
   ["nombre","whatsapp","personas","plataforma"].forEach(id => setCampoRequerido(id, esReserva));
   ["titulo","tallerista","contactoWhatsapp"].forEach(id => setCampoRequerido(id, !esReserva));
+
+  if (typeof chequearOcupado === "function") chequearOcupado();
 }
 
 document.getElementById("btnTipoReserva").addEventListener("click", () => cambiarTipo("reserva"));
@@ -514,13 +516,38 @@ document.getElementById("fecha").addEventListener("change", (e) => {
   chequearOcupado();
 });
 document.getElementById("hora").addEventListener("change", chequearOcupado);
+document.getElementById("personas").addEventListener("input", chequearOcupado);
+
+const MAX_PERSONAS_POR_RESERVA = 15;
+const MAX_PERSONAS_TOTAL = 30;
+const MAX_RESERVAS_PARALELAS = 2;
 
 function chequearOcupado() {
   const fecha = document.getElementById("fecha").value;
   const hora = document.getElementById("hora").value;
   const warning = document.getElementById("slotWarning");
   if (!fecha || !hora) { warning.classList.remove("show"); return; }
-  const ocupado = TODOS.some(r => r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
+
+  let ocupado = false;
+
+  if (TIPO_ACTUAL === "reserva") {
+    // Regla: máx 2 reservas en paralelo (≤15 personas c/u) o 1 reserva de hasta 30 personas.
+    const reservasEnHorario = TODOS.filter(r => r.tipo === "reserva" && r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
+    const nuevaPersonas = parseInt(document.getElementById("personas").value, 10) || 0;
+    const personasExistentes = reservasEnHorario.reduce((sum, r) => sum + (r.personas || 0), 0);
+
+    if (reservasEnHorario.length >= MAX_RESERVAS_PARALELAS) {
+      ocupado = true;
+    } else if (nuevaPersonas > MAX_PERSONAS_POR_RESERVA && reservasEnHorario.length > 0) {
+      ocupado = true; // ya hay otra reserva paralela, no cabe una de >15 (esa combinación exige ser la única, de hasta 30)
+    } else if (personasExistentes + nuevaPersonas > MAX_PERSONAS_TOTAL) {
+      ocupado = true;
+    }
+  } else {
+    // Talleres: solo revisan conflicto contra otros talleres en el mismo horario.
+    ocupado = TODOS.some(r => r.tipo === "taller" && r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
+  }
+
   warning.classList.toggle("show", ocupado);
 }
 
