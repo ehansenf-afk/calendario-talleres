@@ -66,6 +66,17 @@
   .slot-warning { font-size: 12px; color: var(--crit); margin-top: 4px; display: none; font-family: ui-sans-serif, system-ui, sans-serif; }
   .slot-warning.show { display: block; }
 
+  .tipo-toggle { display: flex; gap: 10px; margin-bottom: 18px; }
+  .tipo-toggle button {
+    flex: 1; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+    color: var(--ink-soft); font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .tipo-toggle button.activo.reserva { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+  .tipo-toggle button.activo.taller { background: var(--teal-soft); color: var(--teal); border-color: var(--teal); }
+  .campos-reserva, .campos-taller { display: contents; }
+  .oculto { display: none !important; }
+
   .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .toolbar input[type="search"] { flex: 1; min-width: 180px; }
 
@@ -126,7 +137,11 @@
   </header>
 
   <div class="panel">
-    <h2>➕ Nueva reserva</h2>
+    <h2 id="tituloForm">➕ Nueva reserva</h2>
+    <div class="tipo-toggle">
+      <button type="button" id="btnTipoReserva" class="activo reserva">📅 Reserva de mesa</button>
+      <button type="button" id="btnTipoTaller" class="taller">🎨 Taller</button>
+    </div>
     <form id="formReserva" class="form-grid">
       <div>
         <label for="fecha">Fecha</label>
@@ -137,34 +152,71 @@
         <select id="hora" required></select>
         <p class="slot-warning" id="slotWarning">Ese horario ya está ocupado — revisa el calendario antes de confirmar.</p>
       </div>
-      <div>
+
+      <!-- Campos de RESERVA -->
+      <div class="campo-reserva">
         <label for="nombre">Nombre</label>
-        <input type="text" id="nombre" required>
+        <input type="text" id="nombre">
       </div>
-      <div>
+      <div class="campo-reserva">
         <label for="rut">RUT</label>
-        <input type="text" id="rut" placeholder="12.345.678-9" required>
+        <input type="text" id="rut" placeholder="12.345.678-9">
       </div>
-      <div>
+      <div class="campo-reserva">
         <label for="whatsapp">WhatsApp</label>
-        <input type="tel" id="whatsapp" placeholder="+56 9 1234 5678" required>
+        <input type="tel" id="whatsapp" placeholder="+56 9 1234 5678">
       </div>
-      <div>
+      <div class="campo-reserva">
         <label for="correo">Correo</label>
-        <input type="email" id="correo" required>
+        <input type="email" id="correo">
       </div>
-      <div>
+      <div class="campo-reserva">
         <label for="personas">N° de personas</label>
-        <input type="number" id="personas" min="1" required>
+        <input type="number" id="personas" min="1">
       </div>
-      <div>
+      <div class="campo-reserva">
         <label for="plataforma">Coordinado por</label>
-        <input type="text" id="plataforma" placeholder="Ej: Mauricio, teléfono" required>
+        <input type="text" id="plataforma" placeholder="Ej: Mauricio, teléfono">
       </div>
-      <div class="full">
+      <div class="full campo-reserva">
         <label for="nota">Descripción del taller (opcional)</label>
         <textarea id="nota" placeholder="Detalles adicionales..."></textarea>
       </div>
+
+      <!-- Campos de TALLER -->
+      <div class="full campo-taller oculto">
+        <label for="titulo">Título del taller</label>
+        <input type="text" id="titulo" placeholder="Ej: Taller de Cerámica">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="tallerista">Tallerista</label>
+        <input type="text" id="tallerista" placeholder="Nombre del tallerista">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="capacidad">Capacidad (opcional)</label>
+        <input type="number" id="capacidad" min="1">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="precio">Precio (opcional)</label>
+        <input type="number" id="precio" min="0" placeholder="Deja vacío si es por confirmar">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="coffeeBreak">Coffee break (opcional)</label>
+        <input type="text" id="coffeeBreak" placeholder="Ej: Pack Dulce">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="contactoWhatsapp">Contacto WhatsApp</label>
+        <input type="tel" id="contactoWhatsapp" placeholder="+56 9 1234 5678">
+      </div>
+      <div class="campo-taller oculto">
+        <label for="contactoInstagram">Contacto Instagram (opcional)</label>
+        <input type="text" id="contactoInstagram" placeholder="@usuario">
+      </div>
+      <div class="full campo-taller oculto">
+        <label for="descripcionTaller">Descripción</label>
+        <textarea id="descripcionTaller" placeholder="Descripción del taller..."></textarea>
+      </div>
+
       <div class="full">
         <button type="submit" class="btn-primario" id="btnGuardar">Guardar reserva</button>
         <div class="msg" id="msgResultado"></div>
@@ -426,6 +478,33 @@ function jumpTo(id) {
   setTimeout(() => el.classList.remove("flash"), 1600);
 }
 
+let TIPO_ACTUAL = "reserva";
+
+function setCampoRequerido(id, requerido) {
+  const el = document.getElementById(id);
+  if (el) el.required = requerido;
+}
+
+function cambiarTipo(tipo) {
+  TIPO_ACTUAL = tipo;
+  const esReserva = tipo === "reserva";
+
+  document.getElementById("btnTipoReserva").classList.toggle("activo", esReserva);
+  document.getElementById("btnTipoTaller").classList.toggle("activo", !esReserva);
+  document.getElementById("tituloForm").textContent = esReserva ? "➕ Nueva reserva" : "➕ Nuevo taller";
+  document.getElementById("btnGuardar").textContent = esReserva ? "Guardar reserva" : "Guardar taller";
+
+  document.querySelectorAll(".campo-reserva").forEach(el => el.classList.toggle("oculto", !esReserva));
+  document.querySelectorAll(".campo-taller").forEach(el => el.classList.toggle("oculto", esReserva));
+
+  ["nombre","whatsapp","personas","plataforma"].forEach(id => setCampoRequerido(id, esReserva));
+  ["titulo","tallerista","contactoWhatsapp"].forEach(id => setCampoRequerido(id, !esReserva));
+}
+
+document.getElementById("btnTipoReserva").addEventListener("click", () => cambiarTipo("reserva"));
+document.getElementById("btnTipoTaller").addEventListener("click", () => cambiarTipo("taller"));
+cambiarTipo("reserva");
+
 document.getElementById("buscar").addEventListener("input", render);
 document.getElementById("filtroEstado").addEventListener("change", render);
 
@@ -455,23 +534,50 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
   btn.disabled = true;
   btn.textContent = "Guardando...";
 
-  const payload = {
-    negocio_id: NEGOCIO_ID,
-    id_reserva: generarCodigo(),
-    fecha: document.getElementById("fecha").value,
-    hora: document.getElementById("hora").value + ":00",
-    nombre_contacto: document.getElementById("nombre").value.trim(),
-    rut: document.getElementById("rut").value.trim(),
-    whatsapp_contacto: document.getElementById("whatsapp").value.trim(),
-    correo: document.getElementById("correo").value.trim().toLowerCase(),
-    personas: parseInt(document.getElementById("personas").value, 10),
-    plataforma: document.getElementById("plataforma").value.trim(),
-    nota: document.getElementById("nota").value.trim() || null,
-    estado: "activa"
-  };
+  const esReserva = TIPO_ACTUAL === "reserva";
+  let payload, url, mensajeOk;
+
+  if (esReserva) {
+    payload = {
+      negocio_id: NEGOCIO_ID,
+      id_reserva: generarCodigo(),
+      fecha: document.getElementById("fecha").value,
+      hora: document.getElementById("hora").value + ":00",
+      nombre_contacto: document.getElementById("nombre").value.trim(),
+      rut: document.getElementById("rut").value.trim(),
+      whatsapp_contacto: document.getElementById("whatsapp").value.trim(),
+      correo: document.getElementById("correo").value.trim().toLowerCase(),
+      personas: parseInt(document.getElementById("personas").value, 10),
+      plataforma: document.getElementById("plataforma").value.trim(),
+      nota: document.getElementById("nota").value.trim() || null,
+      estado: "activa"
+    };
+    url = SUPABASE_URL + "/rest/v1/reservas";
+    mensajeOk = () => "✅ Reserva guardada con código " + payload.id_reserva;
+  } else {
+    const precioVal = document.getElementById("precio").value;
+    payload = {
+      negocio_id: NEGOCIO_ID,
+      titulo: document.getElementById("titulo").value.trim(),
+      fecha: document.getElementById("fecha").value,
+      hora: document.getElementById("hora").value + ":00",
+      tallerista: document.getElementById("tallerista").value.trim(),
+      capacidad: document.getElementById("capacidad").value ? parseInt(document.getElementById("capacidad").value, 10) : null,
+      precio: precioVal ? parseInt(precioVal, 10) : null,
+      coffee_break: document.getElementById("coffeeBreak").value.trim() || null,
+      contacto_whatsapp: document.getElementById("contactoWhatsapp").value.trim() || null,
+      contacto_instagram: document.getElementById("contactoInstagram").value.trim() || null,
+      descripcion: document.getElementById("descripcionTaller").value.trim() || null,
+      estado: "activo",
+      notificado: false,
+      cupos_agotados: false
+    };
+    url = SUPABASE_URL + "/rest/v1/talleres";
+    mensajeOk = () => "✅ Taller guardado: " + payload.titulo;
+  }
 
   try {
-    const res = await fetch(SUPABASE_URL + "/rest/v1/reservas", {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY,
@@ -482,10 +588,11 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     if (!res.ok) throw new Error("Error " + res.status);
 
     msg.classList.add("ok");
-    msg.textContent = "✅ Reserva guardada con código " + payload.id_reserva;
+    msg.textContent = mensajeOk();
     document.getElementById("formReserva").reset();
     document.getElementById("hora").innerHTML = "";
     document.getElementById("slotWarning").classList.remove("show");
+    cambiarTipo(TIPO_ACTUAL);
 
     TODOS = await cargarTodo();
     render();
@@ -494,7 +601,7 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     msg.textContent = "❌ No se pudo guardar. Intenta de nuevo.";
   } finally {
     btn.disabled = false;
-    btn.textContent = "Guardar reserva";
+    btn.textContent = esReserva ? "Guardar reserva" : "Guardar taller";
   }
 });
 
