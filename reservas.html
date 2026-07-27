@@ -319,6 +319,7 @@ async function cargarTodo() {
     nombre: t.titulo,
     tallerista: t.tallerista || "",
     whatsapp: t.contacto_whatsapp || "",
+    personas: t.capacidad || 0,
     estado: "activa"
   }));
   return reservas.concat(talleres);
@@ -517,35 +518,33 @@ document.getElementById("fecha").addEventListener("change", (e) => {
 });
 document.getElementById("hora").addEventListener("change", chequearOcupado);
 document.getElementById("personas").addEventListener("input", chequearOcupado);
+document.getElementById("capacidad").addEventListener("input", chequearOcupado);
 
 const MAX_PERSONAS_POR_RESERVA = 15;
 const MAX_PERSONAS_TOTAL = 30;
 const MAX_RESERVAS_PARALELAS = 2;
 
+// Regla de ocupación (aplica igual a reservas y talleres, comparten el mismo espacio):
+// hasta 2 eventos en paralelo (≤15 personas/capacidad c/u), o 1 solo evento de hasta 30.
 function chequearOcupado() {
   const fecha = document.getElementById("fecha").value;
   const hora = document.getElementById("hora").value;
   const warning = document.getElementById("slotWarning");
   if (!fecha || !hora) { warning.classList.remove("show"); return; }
 
+  const existentes = TODOS.filter(r => r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
+  const nuevaCantidad = TIPO_ACTUAL === "reserva"
+    ? (parseInt(document.getElementById("personas").value, 10) || 0)
+    : (parseInt(document.getElementById("capacidad").value, 10) || 0);
+  const cantidadExistente = existentes.reduce((sum, r) => sum + (r.personas || 0), 0);
+
   let ocupado = false;
-
-  if (TIPO_ACTUAL === "reserva") {
-    // Regla: máx 2 reservas en paralelo (≤15 personas c/u) o 1 reserva de hasta 30 personas.
-    const reservasEnHorario = TODOS.filter(r => r.tipo === "reserva" && r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
-    const nuevaPersonas = parseInt(document.getElementById("personas").value, 10) || 0;
-    const personasExistentes = reservasEnHorario.reduce((sum, r) => sum + (r.personas || 0), 0);
-
-    if (reservasEnHorario.length >= MAX_RESERVAS_PARALELAS) {
-      ocupado = true;
-    } else if (nuevaPersonas > MAX_PERSONAS_POR_RESERVA && reservasEnHorario.length > 0) {
-      ocupado = true; // ya hay otra reserva paralela, no cabe una de >15 (esa combinación exige ser la única, de hasta 30)
-    } else if (personasExistentes + nuevaPersonas > MAX_PERSONAS_TOTAL) {
-      ocupado = true;
-    }
-  } else {
-    // Talleres: solo revisan conflicto contra otros talleres en el mismo horario.
-    ocupado = TODOS.some(r => r.tipo === "taller" && r.fecha === fecha && r.hora === hora && r.estado !== "cancelada");
+  if (existentes.length >= MAX_RESERVAS_PARALELAS) {
+    ocupado = true;
+  } else if (nuevaCantidad > MAX_PERSONAS_POR_RESERVA && existentes.length > 0) {
+    ocupado = true; // ya hay otro evento en paralelo, no cabe uno de >15 (esa combinación exige ser el único, de hasta 30)
+  } else if (cantidadExistente + nuevaCantidad > MAX_PERSONAS_TOTAL) {
+    ocupado = true;
   }
 
   warning.classList.toggle("show", ocupado);
