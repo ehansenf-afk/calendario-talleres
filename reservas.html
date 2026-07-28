@@ -212,7 +212,7 @@
       </div>
       <div class="campo-taller oculto">
         <label for="precio">Precio (opcional)</label>
-        <input type="number" id="precio" min="0" placeholder="Deja vacío si es por confirmar">
+        <input type="text" inputmode="numeric" id="precio" placeholder="Ej: 30000 (sin puntos ni decimales)">
       </div>
       <div class="campo-taller oculto">
         <label for="coffeeBreak">Coffee break (opcional)</label>
@@ -751,7 +751,7 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
     url = SUPABASE_URL + "/rest/v1/reservas";
     mensajeOk = () => "✅ Reserva guardada con código " + payload.id_reserva;
   } else {
-    const precioVal = document.getElementById("precio").value;
+    const precioVal = document.getElementById("precio").value.replace(/[^\d]/g, ""); // solo dígitos, nunca decimales (no cobramos en decimales)
     let imagenUrl = null;
     const flyerFile = document.getElementById("flyerFile").files[0];
     if (flyerFile) {
