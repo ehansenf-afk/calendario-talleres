@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Casa Turquesa &amp; Monkey D Market</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --paper: #ffffff; --ink: #211c17; --ink-soft: #6b6156;
+    --line: #e2dbcd; --teal: #0e6b62; --teal-soft: #d9ece9;
+    --gold: #a97327; --gold-soft: #f3e3cc;
+    --shadow: 0 1px 2px rgba(33,28,23,0.06), 0 8px 24px rgba(33,28,23,0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16211f; --paper: #1c2926; --ink: #eee7db; --ink-soft: #a99f8f;
+      --line: #33423e; --teal: #5fc9bb; --teal-soft: #24403b;
+      --gold: #e0ab5c; --gold-soft: #3a3324;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; min-height: 100vh; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: 24px; }
+  .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin: 0 0 6px; }
+  h1 { font-size: clamp(22px, 4vw, 30px); margin: 0; font-weight: 700; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tabs button {
+    padding: 9px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+    color: var(--ink-soft); font-size: 13.5px; font-weight: 600; cursor: pointer;
+  }
+  .tabs button.activo { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+  .panel { display: none; }
+  .panel.activo { display: block; }
+
+  .grid-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card-link { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); text-decoration: none; color: var(--ink); display: block; }
+  .card-link:hover { border-color: var(--teal); }
+  .card-link .titulo { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .card-link .desc { font-size: 12px; color: var(--ink-soft); }
+
+  .conv-toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .conv-toolbar select, .conv-toolbar input { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font-size: 13px; }
+  .conv-toolbar input { flex: 1; min-width: 180px; }
+
+  .conv-list { display: flex; flex-direction: column; gap: 8px; }
+  .conv-item { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; cursor: pointer; box-shadow: var(--shadow); }
+  .conv-item .fila-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .conv-item .id { font-weight: 700; font-size: 13.5px; }
+  .conv-item .canal { font-size: 10.5px; padding: 2px 8px; border-radius: 999px; font-weight: 700; text-transform: uppercase; }
+  .canal.whatsapp { background: var(--teal-soft); color: var(--teal); }
+  .canal.instagram { background: var(--gold-soft); color: var(--gold); }
+  .conv-item .fecha { font-size: 11px; color: var(--ink-soft); }
+  .conv-item .preview { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .chat-view { display: none; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin-top: 14px; max-height: 500px; overflow-y: auto; }
+  .chat-view.activo { display: block; }
+  .chat-view .cerrar { float: right; cursor: pointer; color: var(--ink-soft); font-size: 13px; }
+  .chat-view .acciones-chat { margin-bottom: 14px; }
+  .btn-pausar { background: var(--gold-soft); color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; padding: 7px 14px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .btn-pausar:disabled { opacity: 0.5; cursor: default; }
+  .wf-toggle { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+  .wf-toggle button { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: var(--bg); color: var(--ink-soft); }
+  .wf-toggle button.on { background: var(--teal-soft); color: var(--teal); border-color: var(--teal); }
+  .wf-toggle button.off { background: var(--gold-soft); color: var(--gold); border-color: var(--gold); }
+  .msg-bubble { max-width: 75%; padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; white-space: pre-wrap; }
+  .msg-bubble.human { background: var(--teal-soft); margin-right: auto; }
+  .msg-bubble.bot { background: var(--gold-soft); margin-left: auto; }
+
+  .loading { color: var(--ink-soft); font-size: 13px; padding: 20px; text-align: center; }
+  footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Casa Turquesa · Monkey D Market</p>
+      <h1>Dashboard operativo</h1>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="activo" data-tab="martina">💬 Martina (Casa Turquesa)</button>
+    <button data-tab="diana">💬 Diana (Monkey D Market)</button>
+    <button data-tab="calendario">📅 Calendario</button>
+    <button data-tab="automatizaciones">⚙️ Automatizaciones</button>
+  </div>
+
+  <div class="panel activo" id="panel-martina">
+    <div class="conv-toolbar">
+      <select id="filtroCanalMartina">
+        <option value="todos">Todos los canales</option>
+        <option value="whatsapp">Solo WhatsApp</option>
+        <option value="instagram">Solo Instagram</option>
+      </select>
+      <input type="search" id="buscarMartina" placeholder="Buscar por ID o contenido...">
+    </div>
+    <div class="conv-list" id="listaMartina"><div class="loading">Cargando conversaciones…</div></div>
+    <div class="chat-view" id="chatMartina"></div>
+  </div>
+
+  <div class="panel" id="panel-diana">
+    <div class="conv-toolbar">
+      <input type="search" id="buscarDiana" placeholder="Buscar por teléfono o contenido...">
+    </div>
+    <div class="conv-list" id="listaDiana"><div class="loading">Cargando conversaciones…</div></div>
+    <div class="chat-view" id="chatDiana"></div>
+  </div>
+
+  <div class="panel" id="panel-calendario">
+    <div class="grid-links">
+      <a class="card-link" href="https://calendario-talleres.vercel.app" target="_blank">
+        <div class="titulo">📅 Calendario público de talleres</div>
+        <div class="desc">Lo que ven los clientes — solo talleres activos</div>
+      </a>
+      <a class="card-link" href="https://calendario-talleres.vercel.app/reservas.html" target="_blank">
+        <div class="titulo">🗓️ Calendario interno (reservas + talleres)</div>
+        <div class="desc">Crear, editar y eliminar reservas y talleres — uso del equipo</div>
+      </a>
+      <a class="card-link" href="https://formulario-talleres-casa-turquesa.vercel.app" target="_blank">
+        <div class="titulo">✉️ Formulario de comunidad</div>
+        <div class="desc">Captación de correos para el newsletter de talleres</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-automatizaciones">
+    <div class="grid-links" id="listaWorkflows"><div class="loading">Cargando workflows…</div></div>
+  </div>
+
+  <footer id="footerNote">Cargando…</footer>
+</div>
+
+<script>
+const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
+
+document.querySelectorAll(".tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("activo"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("activo"));
+    btn.classList.add("activo");
+    document.getElementById("panel-" + btn.dataset.tab).classList.add("activo");
+  });
+});
+
+function esWhatsApp(sessionId) {
+  return /^56\d{9}$/.test(sessionId);
+}
+
+function tiempoRelativo(fechaISO) {
+  const d = new Date(fechaISO);
+  const diffMin = Math.round((Date.now() - d.getTime()) / 60000);
+  if (diffMin < 60) return diffMin + " min";
+  if (diffMin < 1440) return Math.round(diffMin / 60) + " hrs";
+  return Math.round(diffMin / 1440) + " días";
+}
+
+let MARTINA_DATA = [];
+let DIANA_DATA = [];
+
+async function cargarMartina() {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/conversaciones_martina?select=session_id,messages,updated_at&order=updated_at.desc&limit=150", {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }
+  });
+  MARTINA_DATA = await res.json();
+  renderMartina();
+}
+
+function renderMartina() {
+  const canal = document.getElementById("filtroCanalMartina").value;
+  const q = document.getElementById("buscarMartina").value.toLowerCase();
+  const wrap = document.getElementById("listaMartina");
+  wrap.innerHTML = "";
+
+  let items = MARTINA_DATA.filter(c => {
+    const esWA = esWhatsApp(c.session_id);
+    if (canal === "whatsapp" && !esWA) return false;
+    if (canal === "instagram" && esWA) return false;
+    if (!q) return true;
+    const texto = (c.session_id + " " + (c.messages || []).map(m => m.content).join(" ")).toLowerCase();
+    return texto.includes(q);
+  });
+
+  if (items.length === 0) { wrap.innerHTML = '<div class="loading">Sin resultados</div>'; return; }
+
+  items.forEach(c => {
+    const msgs = c.messages || [];
+    const ultimo = msgs[msgs.length - 1];
+    const esWA = esWhatsApp(c.session_id);
+    const div = document.createElement("div");
+    div.className = "conv-item";
+    div.innerHTML = `
+      <div class="fila-top">
+        <span class="id">${c.session_id}</span>
+        <span class="canal ${esWA ? 'whatsapp' : 'instagram'}">${esWA ? 'WhatsApp' : 'Instagram'}</span>
+      </div>
+      <div class="preview">${ultimo ? (ultimo.role === 'human' ? '👤 ' : '🤖 ') + ultimo.content.replace(/\\n/g,' ') : ''}</div>
+      <div class="fecha">${tiempoRelativo(c.updated_at)} · ${msgs.length} mensajes</div>
+    `;
+    div.addEventListener("click", () => mostrarChat("Martina", c, msgs));
+    wrap.appendChild(div);
+  });
+}
+
+async function cargarDiana() {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/diana_conversaciones?select=telefono,historial,updated_at&order=updated_at.desc&limit=150", {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }
+  });
+  DIANA_DATA = await res.json();
+  renderDiana();
+}
+
+function renderDiana() {
+  const q = document.getElementById("buscarDiana").value.toLowerCase();
+  const wrap = document.getElementById("listaDiana");
+  wrap.innerHTML = "";
+
+  let items = DIANA_DATA.filter(c => {
+    if (!q) return true;
+    const texto = (c.telefono + " " + (c.historial || []).map(m => m.content).join(" ")).toLowerCase();
+    return texto.includes(q);
+  });
+
+  if (items.length === 0) { wrap.innerHTML = '<div class="loading">Sin resultados</div>'; return; }
+
+  items.forEach(c => {
+    const msgs = (c.historial || []).map(m => ({ role: m.role === 'user' ? 'human' : 'bot', content: m.content }));
+    const ultimo = msgs[msgs.length - 1];
+    const div = document.createElement("div");
+    div.className = "conv-item";
+    div.innerHTML = `
+      <div class="fila-top">
+        <span class="id">${c.telefono}</span>
+        <span class="canal whatsapp">WhatsApp</span>
+      </div>
+      <div class="preview">${ultimo ? (ultimo.role === 'human' ? '👤 ' : '🤖 ') + ultimo.content.replace(/\\n/g,' ') : ''}</div>
+      <div class="fecha">${tiempoRelativo(c.updated_at)} · ${msgs.length} mensajes</div>
+    `;
+    div.addEventListener("click", () => mostrarChat("Diana", c, msgs));
+    wrap.appendChild(div);
+  });
+}
+
+async function pausarBot(bot, idValor, btn) {
+  const tabla = bot === "Martina" ? "conversaciones_martina" : "diana_conversaciones";
+  const campoId = bot === "Martina" ? "session_id" : "telefono";
+  const pausaHasta = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  btn.disabled = true;
+  btn.textContent = "Pausando...";
+  try {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/" + tabla + "?" + campoId + "=eq." + encodeURIComponent(idValor), {
+      method: "PATCH",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ pausa_hasta: pausaHasta })
+    });
+    if (!res.ok) throw new Error();
+    btn.textContent = "✅ Pausado 24h";
+  } catch (e) {
+    btn.textContent = "❌ Error, reintenta";
+    btn.disabled = false;
+  }
+}
+
+function mostrarChat(bot, c, msgs) {
+  const chatEl = document.getElementById(bot === "Martina" ? "chatMartina" : "chatDiana");
+  const idValor = bot === "Martina" ? c.session_id : c.telefono;
+  chatEl.innerHTML = '<span class="cerrar">✕ Cerrar</span>' +
+    '<div class="acciones-chat"><button class="btn-pausar" id="btnPausar">⏸️ Pausar bot 24h para este contacto</button></div>' +
+    msgs.map(m => `<div class="msg-bubble ${m.role === 'human' ? 'human' : 'bot'}">${(m.content||'').replace(/</g,'&lt;')}</div>`).join('');
+  chatEl.classList.add("activo");
+  chatEl.querySelector(".cerrar").addEventListener("click", () => chatEl.classList.remove("activo"));
+  chatEl.querySelector("#btnPausar").addEventListener("click", (e) => pausarBot(bot, idValor, e.target));
+  chatEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+document.getElementById("filtroCanalMartina").addEventListener("change", renderMartina);
+document.getElementById("buscarMartina").addEventListener("input", renderMartina);
+document.getElementById("buscarDiana").addEventListener("input", renderDiana);
+
+const WORKFLOWS = [
+  { nombre: "WHATSAPP CASA TURQUESA - Martina", id: "GoFZ7DIR86a60QTv" },
+  { nombre: "INSTAGRAM CASA TURQUESA - Martina", id: "Dlck4aA8koTMdk9D" },
+  { nombre: "Diana — Agente WhatsApp Monkey D' Marketv6", id: "KzHZrBJ0IaWlqv3w" },
+  { nombre: "NEWSLETTER SEMANAL TALLERES - CASA TURQUESA", id: "p56ehfljpPOfFYlx" },
+  { nombre: "ENVÍO INVENTARIO CASA TURQUESA", id: "RUk7PeWmPR1H3iAn" },
+  { nombre: "ENVÍO INVENTARIO MONKEY", id: "AqWPLz3PYni6R6BZ" },
+  { nombre: "AVISO RESERVAS Y TALLERES - CASA TURQUESA", id: "o5jXJ3hHz4tutbOZ" },
+  { nombre: "AVISO TALLERES - GRUPO SOY DE ÑUÑOA", id: "klbfhV6cJPbtb4cw" },
+];
+const N8N_BASE = "https://mis-negocios-n8n.u7xiga.easypanel.host/workflow/";
+const TOGGLE_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/toggle-workflow";
+
+async function cargarEstadosWorkflows() {
+  const wrapWf = document.getElementById("listaWorkflows");
+  wrapWf.innerHTML = WORKFLOWS.map(w => `
+    <div class="card-link" style="cursor:default;" data-wf="${w.id}">
+      <a href="${N8N_BASE}${w.id}" target="_blank" style="text-decoration:none;color:inherit;">
+        <div class="titulo">${w.nombre}</div>
+        <div class="desc">Abrir en n8n →</div>
+      </a>
+      <div class="wf-toggle" id="toggle-${w.id}">
+        <button disabled>...</button>
+      </div>
+    </div>
+  `).join('');
+
+  // El estado activo/inactivo no se puede leer desde el navegador por CORS; solo se puede accionar el toggle.
+  WORKFLOWS.forEach(w => {
+    const el = document.getElementById("toggle-" + w.id);
+    el.innerHTML = `
+      <button class="off" data-action="deactivate" data-id="${w.id}">⏸️ Pausar</button>
+      <button class="on" data-action="activate" data-id="${w.id}">▶️ Activar</button>
+    `;
+  });
+
+  document.querySelectorAll(".wf-toggle button").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const id = btn.dataset.id, action = btn.dataset.action;
+      btn.textContent = "...";
+      try {
+        const res = await fetch(TOGGLE_URL, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workflowId: id, action })
+        });
+        const data = await res.json();
+        btn.textContent = data.ok ? "✅" : "❌";
+        setTimeout(() => { btn.textContent = action === "activate" ? "▶️ Activar" : "⏸️ Pausar"; }, 1500);
+      } catch (e) {
+        btn.textContent = "❌";
+      }
+    });
+  });
+}
+cargarEstadosWorkflows();
+
+Promise.all([cargarMartina(), cargarDiana()]).then(() => {
+  document.getElementById("footerNote").textContent = "Datos en vivo desde Supabase · actualizado " + new Date().toLocaleString("es-CL", { dateStyle: "medium", timeStyle: "short" });
+});
+</script>
+</body>
+</html>
