@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Casa Turquesa</title>
+<title>Mis Negocios</title>
 <style>
   :root {
     --bg: #f3f4f6; --paper: #ffffff; --ink: #111827; --ink-soft: #6b7280;
@@ -98,19 +98,35 @@
 
   .loading { color: var(--ink-soft); font-size: 13px; padding: 20px; text-align: center; }
   footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 10px 0 20px; }
+
+  #gate { position: fixed; inset: 0; background: var(--sidebar-bg); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  #gate .box { background: var(--paper); border-radius: 12px; padding: 32px; width: 300px; text-align: center; box-shadow: var(--shadow); }
+  #gate h2 { font-size: 16px; margin: 0 0 14px; }
+  #gate input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font-size: 14px; margin-bottom: 10px; }
+  #gate button { width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+  #gate .err { color: var(--warn); font-size: 12px; margin-top: 8px; display: none; }
 </style>
 </head>
 <body>
-<div class="app">
+<div id="gate">
+  <div class="box">
+    <h2>🔒 Acceso privado</h2>
+    <input type="password" id="gatePass" placeholder="Contraseña">
+    <button id="gateBtn">Entrar</button>
+    <p class="err" id="gateErr">Contraseña incorrecta</p>
+  </div>
+</div>
+<div class="app" id="appContent" style="display:none;">
   <aside class="sidebar">
     <div class="brand">
-      <p class="eyebrow">Casa Turquesa</p>
-      <h1>Gestión Casa Turquesa</h1>
+      <p class="eyebrow">Casa Turquesa · Monkey D Market</p>
+      <h1>Mis Negocios</h1>
     </div>
     <nav>
       <button class="activo" data-tab="martina">💬 Martina</button>
       <button data-tab="diana">💬 Diana</button>
       <button data-tab="calendario">📅 Calendario</button>
+      <button data-tab="pagos">💳 Pagos</button>
       <button data-tab="automatizaciones">⚙️ Automatizaciones</button>
     </nav>
   </aside>
@@ -155,6 +171,16 @@
         </div>
       </div>
 
+      <div class="panel" id="panel-pagos">
+        <div class="grid-links">
+          <a class="card-link" href="https://portalcomercios.getnet.cl/ClientPortal/login" target="_blank">
+            <div class="titulo">💳 Portal GetNet</div>
+            <div class="desc">Comercio / transacciones POS</div>
+          </a>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Dime qué otros links de pago quieres que agregue acá (Mercado Pago, transferencias, etc.) y los sumo.</p>
+      </div>
+
       <div class="panel" id="panel-calendario">
         <div class="grid-links">
           <a class="card-link" href="https://calendario-talleres.vercel.app" target="_blank">
@@ -181,12 +207,30 @@
 </div>
 
 <script>
+const CLAVE_ACCESO = "turquesa2026"; // cambia esta clave cuando quieras
+if (sessionStorage.getItem("gestion_ok") === "1") {
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("appContent").style.display = "flex";
+}
+document.getElementById("gateBtn").addEventListener("click", intentarEntrar);
+document.getElementById("gatePass").addEventListener("keydown", (e) => { if (e.key === "Enter") intentarEntrar(); });
+function intentarEntrar() {
+  const val = document.getElementById("gatePass").value;
+  if (val === CLAVE_ACCESO) {
+    sessionStorage.setItem("gestion_ok", "1");
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("appContent").style.display = "flex";
+  } else {
+    document.getElementById("gateErr").style.display = "block";
+  }
+}
+
 const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
 const EVOLUTION_URL = "https://mis-negocios-evolution-api.u7xiga.easypanel.host";
 const EVOLUTION_KEY = "429683C4C977415CAAFCCE10F7D57E11";
 
-const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", automatizaciones: "Automatizaciones (n8n)" };
+const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", pagos: "Pagos", automatizaciones: "Automatizaciones (n8n)" };
 document.querySelectorAll(".sidebar nav button").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".sidebar nav button").forEach(b => b.classList.remove("activo"));
@@ -414,26 +458,36 @@ document.getElementById("filtroCanalMartina").addEventListener("change", renderM
 document.getElementById("buscarMartina").addEventListener("input", renderMartina);
 document.getElementById("buscarDiana").addEventListener("input", renderDiana);
 
-const WORKFLOWS = [
-  { nombre: "WHATSAPP CASA TURQUESA - Martina", id: "GoFZ7DIR86a60QTv" },
-  { nombre: "INSTAGRAM CASA TURQUESA - Martina", id: "Dlck4aA8koTMdk9D" },
-  { nombre: "Diana — Agente WhatsApp Monkey D' Marketv6", id: "KzHZrBJ0IaWlqv3w" },
-  { nombre: "NEWSLETTER SEMANAL TALLERES - CASA TURQUESA", id: "p56ehfljpPOfFYlx" },
-  { nombre: "ENVÍO INVENTARIO CASA TURQUESA", id: "RUk7PeWmPR1H3iAn" },
-  { nombre: "ENVÍO INVENTARIO MONKEY", id: "AqWPLz3PYni6R6BZ" },
-  { nombre: "AVISO RESERVAS Y TALLERES - CASA TURQUESA", id: "o5jXJ3hHz4tutbOZ" },
-  { nombre: "AVISO TALLERES - GRUPO SOY DE ÑUÑOA", id: "klbfhV6cJPbtb4cw" },
-];
 const N8N_BASE = "https://mis-negocios-n8n.u7xiga.easypanel.host/workflow/";
 const TOGGLE_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/toggle-workflow";
 
-function cargarEstadosWorkflows() {
+async function cargarEstadosWorkflows() {
   const wrapWf = document.getElementById("listaWorkflows");
-  wrapWf.innerHTML = WORKFLOWS.map(w => `
+  wrapWf.innerHTML = '<div class="loading">Cargando workflows…</div>';
+
+  let workflows = [];
+  try {
+    const res = await fetch(TOGGLE_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "list" })
+    });
+    const data = await res.json();
+    workflows = data.workflows || [];
+  } catch (e) {
+    wrapWf.innerHTML = '<div class="loading">Error al cargar workflows</div>';
+    return;
+  }
+
+  workflows.sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name));
+
+  wrapWf.innerHTML = workflows.map(w => `
     <div class="card-link" style="cursor:default;" data-wf="${w.id}">
       <a href="${N8N_BASE}${w.id}" target="_blank" style="text-decoration:none;color:inherit;">
-        <div class="titulo">${w.nombre}</div>
-        <div class="desc">Abrir en n8n →</div>
+        <div class="titulo">${w.name}</div>
+        <div class="desc">
+          <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${w.active ? 'var(--ok)' : 'var(--ink-soft)'};margin-right:5px;"></span>
+          ${w.active ? 'Activo' : 'Pausado'} · Abrir en n8n →
+        </div>
       </a>
       <div class="wf-toggle" id="toggle-${w.id}">
         <button class="off" data-action="deactivate" data-id="${w.id}">⏸️ Pausar</button>
@@ -455,7 +509,7 @@ function cargarEstadosWorkflows() {
         });
         const data = await res.json();
         btn.textContent = data.ok ? "✅" : "❌";
-        setTimeout(() => { btn.textContent = original; }, 1500);
+        setTimeout(() => cargarEstadosWorkflows(), 1000);
       } catch (e) {
         btn.textContent = "❌";
         setTimeout(() => { btn.textContent = original; }, 1500);
