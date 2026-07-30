@@ -99,6 +99,10 @@
   .wf-toggle button.off { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
 
   .loading { color: var(--ink-soft); font-size: 13px; padding: 20px; text-align: center; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .stat-tile { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat-tile .num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-tile .lbl { font-size: 11.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
   footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 10px 0 20px; }
 
   #gate { position: fixed; inset: 0; background: var(--sidebar-bg); display: flex; align-items: center; justify-content: center; z-index: 999; }
@@ -129,6 +133,7 @@
       <button data-tab="diana">💬 Diana</button>
       <button data-tab="calendario">📅 Calendario</button>
       <button data-tab="pagos">💳 Pagos</button>
+      <button data-tab="email">✉️ Email Marketing</button>
       <button data-tab="automatizaciones">⚙️ Automatizaciones</button>
       <button data-tab="configuracion">🔧 Configuración</button>
     </nav>
@@ -206,6 +211,19 @@
           </a>
         </div>
         <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Dime qué otros links de pago quieres que agregue acá y los sumo.</p>
+      </div>
+
+      <div class="panel" id="panel-email">
+        <div class="conv-toolbar" style="margin-bottom:16px;">
+          <select id="rangoEmail">
+            <option value="7">Últimos 7 días</option>
+            <option value="30" selected>Últimos 30 días</option>
+            <option value="90">Últimos 90 días</option>
+          </select>
+        </div>
+        <div id="emailStats"><div class="loading">Cargando métricas de Brevo…</div></div>
+        <p class="eyebrow" style="margin:24px 0 10px;">Otras cuentas de correo</p>
+        <p style="font-size:12.5px;color:var(--ink-soft);">Bienvenida, Cumpleaños, Sorteo Café y Procesador de Bajas usan la cuenta Brevo compartida antigua — su API key está guardada como credencial nativa en n8n (no en texto plano), así que no puedo traer sus métricas aquí todavía. Si quieres verlas también, dime y sacamos esa key desde n8n.</p>
       </div>
 
       <div class="panel" id="panel-calendario">
@@ -299,7 +317,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const EVOLUTION_URL = "https://mis-negocios-evolution-api.u7xiga.easypanel.host";
 const EVOLUTION_KEY = "429683C4C977415CAAFCCE10F7D57E11";
 
-const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", pagos: "Pagos", automatizaciones: "Automatizaciones (n8n)", configuracion: "Configuración" };
+const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", pagos: "Pagos", email: "Email Marketing", automatizaciones: "Automatizaciones (n8n)", configuracion: "Configuración" };
 document.querySelectorAll(".sidebar nav button").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".sidebar nav button").forEach(b => b.classList.remove("activo"));
@@ -526,6 +544,44 @@ async function pausarBot(tabla, campoId, idValor, btn) {
 document.getElementById("filtroCanalMartina").addEventListener("change", renderMartina);
 document.getElementById("buscarMartina").addEventListener("input", renderMartina);
 document.getElementById("buscarDiana").addEventListener("input", renderDiana);
+
+const BREVO_STATS_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/brevo-stats";
+
+async function cargarEmailStats() {
+  const dias = parseInt(document.getElementById("rangoEmail").value, 10);
+  const wrap = document.getElementById("emailStats");
+  wrap.innerHTML = '<div class="loading">Cargando métricas de Brevo…</div>';
+
+  const hoy = new Date();
+  const desde = new Date(hoy.getTime() - dias * 24 * 60 * 60 * 1000);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+
+  try {
+    const res = await fetch(BREVO_STATS_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ startDate: fmt(desde), endDate: fmt(hoy) })
+    });
+    const wrapped = await res.json();
+    if (!wrapped.ok) throw new Error(wrapped.error);
+    const d = wrapped.data;
+    const tiles = [
+      { num: d.requests || 0, lbl: "Enviados" },
+      { num: d.delivered || 0, lbl: "Entregados" },
+      { num: d.uniqueOpens || 0, lbl: "Aperturas únicas" },
+      { num: d.uniqueClicks || 0, lbl: "Clics únicos" },
+      { num: (d.hardBounces || 0) + (d.softBounces || 0), lbl: "Rebotes" },
+      { num: d.unsubscribed || 0, lbl: "Bajas" },
+    ];
+    wrap.innerHTML = `<p style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">Cuenta: newsletter.talleres.casaturquesa@gmail.com · ${fmt(desde)} a ${fmt(hoy)}</p>
+      <div class="stat-grid">
+        ${tiles.map(t => `<div class="stat-tile"><div class="num">${t.num.toLocaleString("es-CL")}</div><div class="lbl">${t.lbl}</div></div>`).join('')}
+      </div>`;
+  } catch (e) {
+    wrap.innerHTML = '<div class="loading">Error al cargar métricas de Brevo</div>';
+  }
+}
+document.getElementById("rangoEmail").addEventListener("change", cargarEmailStats);
+cargarEmailStats();
 
 const N8N_BASE = "https://mis-negocios-n8n.u7xiga.easypanel.host/workflow/";
 const TOGGLE_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/toggle-workflow";
