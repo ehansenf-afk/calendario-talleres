@@ -22,9 +22,9 @@
     }
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; min-height: 100vh; }
-  .app { display: flex; min-height: 100vh; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; }
+  .app { display: flex; height: 100vh; }
 
   .sidebar { width: 230px; flex-shrink: 0; background: var(--sidebar-bg); padding: 22px 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
   .sidebar .brand { padding: 0 10px 20px; }
@@ -38,13 +38,15 @@
   .sidebar nav button:hover { background: rgba(255,255,255,0.06); }
   .sidebar nav button.activo { background: var(--accent); color: #fff; font-weight: 600; }
 
-  .content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .content-inner { flex: 1; padding: 26px 28px 20px; min-height: 0; display: flex; flex-direction: column; }
+  .content { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .content-inner { flex: 1; padding: 26px 28px 20px; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .panel-scroll { overflow-y: auto; flex: 1; }
   header { margin-bottom: 18px; }
   .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 4px; }
   h1 { font-size: 20px; margin: 0; font-weight: 700; }
 
-  .panel { display: none; flex: 1; min-height: 0; flex-direction: column; }
+  .panel { display: none; flex: 1; min-height: 0; flex-direction: column; overflow-y: auto; }
+  .panel.chat-panel { overflow: hidden; }
   .panel.activo { display: flex; }
 
   .grid-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
@@ -128,6 +130,7 @@
       <button data-tab="calendario">📅 Calendario</button>
       <button data-tab="pagos">💳 Pagos</button>
       <button data-tab="automatizaciones">⚙️ Automatizaciones</button>
+      <button data-tab="configuracion">🔧 Configuración</button>
     </nav>
   </aside>
 
@@ -138,7 +141,7 @@
         <h1 id="panelTitulo">Conversaciones de Martina</h1>
       </header>
 
-      <div class="panel activo" id="panel-martina">
+      <div class="panel chat-panel activo" id="panel-martina">
         <div class="chat-app">
           <div class="chat-col-list">
             <div class="toolbar">
@@ -157,7 +160,7 @@
         </div>
       </div>
 
-      <div class="panel" id="panel-diana">
+      <div class="panel chat-panel" id="panel-diana">
         <div class="chat-app">
           <div class="chat-col-list">
             <div class="toolbar">
@@ -172,13 +175,37 @@
       </div>
 
       <div class="panel" id="panel-pagos">
+        <p class="eyebrow" style="margin-bottom:10px;">Facturación de herramientas / SaaS</p>
+        <div class="grid-links">
+          <a class="card-link" href="https://app.manychat.com/fb4135251/settings#subscriptions" target="_blank">
+            <div class="titulo">🤖 ManyChat — Suscripción</div>
+            <div class="desc">Plan, facturación y contactos</div>
+          </a>
+          <a class="card-link" href="https://platform.openai.com/settings/organization/billing/overview" target="_blank">
+            <div class="titulo">🧠 OpenAI — Facturación</div>
+            <div class="desc">Créditos y uso de la API (Martina, Diana)</div>
+          </a>
+          <a class="card-link" href="https://vercel.com/account/billing" target="_blank">
+            <div class="titulo">▲ Vercel — Facturación</div>
+            <div class="desc">Hosting de calendario, formulario y gestión</div>
+          </a>
+          <a class="card-link" href="https://app.supabase.com/project/udsvumfwczyormmprizm/settings/billing/subscription" target="_blank">
+            <div class="titulo">⚡ Supabase — Facturación</div>
+            <div class="desc">Base de datos de todo el ecosistema</div>
+          </a>
+          <a class="card-link" href="https://app.brevo.com/account/plan" target="_blank">
+            <div class="titulo">✉️ Brevo — Facturación</div>
+            <div class="desc">Newsletter y correos masivos</div>
+          </a>
+        </div>
+        <p class="eyebrow" style="margin:24px 0 10px;">Cobro a clientes</p>
         <div class="grid-links">
           <a class="card-link" href="https://portalcomercios.getnet.cl/ClientPortal/login" target="_blank">
             <div class="titulo">💳 Portal GetNet</div>
             <div class="desc">Comercio / transacciones POS</div>
           </a>
         </div>
-        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Dime qué otros links de pago quieres que agregue acá (Mercado Pago, transferencias, etc.) y los sumo.</p>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;">Dime qué otros links de pago quieres que agregue acá y los sumo.</p>
       </div>
 
       <div class="panel" id="panel-calendario">
@@ -199,7 +226,26 @@
       </div>
 
       <div class="panel" id="panel-automatizaciones">
+        <div class="conv-toolbar" style="margin-bottom:16px;">
+          <select id="filtroNegocioWf">
+            <option value="todos">Todos los negocios</option>
+            <option value="turquesa">📁 Casa Turquesa</option>
+            <option value="monkey">📁 Monkey D Market</option>
+            <option value="otros">📁 Otros</option>
+          </select>
+          <input type="search" id="buscarWf" placeholder="Buscar workflow...">
+        </div>
         <div class="grid-links" id="listaWorkflows"><div class="loading">Cargando workflows…</div></div>
+      </div>
+
+      <div class="panel" id="panel-configuracion">
+        <div class="card-link" style="max-width:340px;">
+          <div class="titulo" style="margin-bottom:10px;">🔒 Cambiar contraseña de acceso</div>
+          <input type="password" id="passActual" placeholder="Contraseña actual" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-size:13px;margin-bottom:8px;">
+          <input type="password" id="passNueva" placeholder="Contraseña nueva" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-size:13px;margin-bottom:10px;">
+          <button id="btnCambiarPass" style="width:100%;padding:9px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;">Guardar nueva contraseña</button>
+          <p id="passMsg" style="font-size:12px;margin-top:8px;"></p>
+        </div>
       </div>
     </div>
     <footer id="footerNote">Cargando…</footer>
@@ -207,7 +253,9 @@
 </div>
 
 <script>
-const CLAVE_ACCESO = "turquesa2026"; // cambia esta clave cuando quieras
+const CLAVE_DEFECTO = "turquesa2026";
+function claveActual() { return localStorage.getItem("gestion_clave") || CLAVE_DEFECTO; }
+
 if (sessionStorage.getItem("gestion_ok") === "1") {
   document.getElementById("gate").style.display = "none";
   document.getElementById("appContent").style.display = "flex";
@@ -216,7 +264,7 @@ document.getElementById("gateBtn").addEventListener("click", intentarEntrar);
 document.getElementById("gatePass").addEventListener("keydown", (e) => { if (e.key === "Enter") intentarEntrar(); });
 function intentarEntrar() {
   const val = document.getElementById("gatePass").value;
-  if (val === CLAVE_ACCESO) {
+  if (val === claveActual()) {
     sessionStorage.setItem("gestion_ok", "1");
     document.getElementById("gate").style.display = "none";
     document.getElementById("appContent").style.display = "flex";
@@ -225,12 +273,33 @@ function intentarEntrar() {
   }
 }
 
+document.getElementById("btnCambiarPass").addEventListener("click", () => {
+  const actual = document.getElementById("passActual").value;
+  const nueva = document.getElementById("passNueva").value;
+  const msg = document.getElementById("passMsg");
+  if (actual !== claveActual()) {
+    msg.textContent = "❌ La contraseña actual no es correcta.";
+    msg.style.color = "var(--warn)";
+    return;
+  }
+  if (!nueva || nueva.length < 4) {
+    msg.textContent = "❌ La nueva contraseña debe tener al menos 4 caracteres.";
+    msg.style.color = "var(--warn)";
+    return;
+  }
+  localStorage.setItem("gestion_clave", nueva);
+  document.getElementById("passActual").value = "";
+  document.getElementById("passNueva").value = "";
+  msg.textContent = "✅ Contraseña actualizada (guardada en este navegador).";
+  msg.style.color = "var(--ok)";
+});
+
 const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
 const EVOLUTION_URL = "https://mis-negocios-evolution-api.u7xiga.easypanel.host";
 const EVOLUTION_KEY = "429683C4C977415CAAFCCE10F7D57E11";
 
-const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", pagos: "Pagos", automatizaciones: "Automatizaciones (n8n)" };
+const TITULOS = { martina: "Conversaciones de Martina", diana: "Conversaciones de Diana", calendario: "Calendario", pagos: "Pagos", automatizaciones: "Automatizaciones (n8n)", configuracion: "Configuración" };
 document.querySelectorAll(".sidebar nav button").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".sidebar nav button").forEach(b => b.classList.remove("activo"));
@@ -461,24 +530,45 @@ document.getElementById("buscarDiana").addEventListener("input", renderDiana);
 const N8N_BASE = "https://mis-negocios-n8n.u7xiga.easypanel.host/workflow/";
 const TOGGLE_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/toggle-workflow";
 
+let WORKFLOWS_CACHE = [];
+
+function categorizarWf(nombre) {
+  const n = nombre.toLowerCase();
+  if (/monkey|diana/.test(n)) return "monkey";
+  if (/turquesa|martina|taller|reserva|ñuñoa|newsletter/.test(n)) return "turquesa";
+  return "otros";
+}
+
 async function cargarEstadosWorkflows() {
   const wrapWf = document.getElementById("listaWorkflows");
   wrapWf.innerHTML = '<div class="loading">Cargando workflows…</div>';
-
-  let workflows = [];
   try {
     const res = await fetch(TOGGLE_URL, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "list" })
     });
     const data = await res.json();
-    workflows = data.workflows || [];
+    WORKFLOWS_CACHE = data.workflows || [];
   } catch (e) {
     wrapWf.innerHTML = '<div class="loading">Error al cargar workflows</div>';
     return;
   }
+  renderWorkflows();
+}
 
+function renderWorkflows() {
+  const wrapWf = document.getElementById("listaWorkflows");
+  const negocio = document.getElementById("filtroNegocioWf").value;
+  const q = document.getElementById("buscarWf").value.toLowerCase();
+
+  let workflows = WORKFLOWS_CACHE.filter(w => {
+    if (negocio !== "todos" && categorizarWf(w.name) !== negocio) return false;
+    if (q && !w.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
   workflows.sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name));
+
+  if (workflows.length === 0) { wrapWf.innerHTML = '<div class="loading">Sin resultados</div>'; return; }
 
   wrapWf.innerHTML = workflows.map(w => `
     <div class="card-link" style="cursor:default;" data-wf="${w.id}">
@@ -517,6 +607,9 @@ async function cargarEstadosWorkflows() {
     });
   });
 }
+
+document.getElementById("filtroNegocioWf").addEventListener("change", renderWorkflows);
+document.getElementById("buscarWf").addEventListener("input", renderWorkflows);
 cargarEstadosWorkflows();
 
 Promise.all([cargarMartina(), cargarDiana()]).then(() => {
