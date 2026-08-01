@@ -417,6 +417,7 @@ function render() {
           <div class="tag tag-taller">Taller</div>
           <div class="acciones">
             <button type="button" class="btn-editar" data-editar="${r.id}">✏️ Editar</button>
+            <button type="button" class="btn-editar" data-repetir="${r.id}">🔁 Repetir</button>
             <button type="button" class="btn-eliminar" data-eliminar="${r.id}">🗑️ Eliminar</button>
           </div>
         </div>
@@ -614,11 +615,42 @@ async function eliminarItem(idComposite) {
 }
 
 document.getElementById("listItems").addEventListener("click", (e) => {
+  const btnRepetir = e.target.closest("[data-repetir]");
+  if (btnRepetir) { repetirTaller(btnRepetir.dataset.repetir); return; }
   const btnEditar = e.target.closest("[data-editar]");
   if (btnEditar) { iniciarEdicion(btnEditar.dataset.editar); return; }
   const btnEliminar = e.target.closest("[data-eliminar]");
   if (btnEliminar) { eliminarItem(btnEliminar.dataset.eliminar); return; }
 });
+
+function repetirTaller(idComposite) {
+  const item = TODOS.find(r => r.id === idComposite);
+  if (!item || item.tipo !== "taller") return;
+
+  cambiarTipo("taller");
+  cancelarEdicion();
+
+  document.getElementById("fecha").value = "";
+  document.getElementById("hora").innerHTML = "";
+  limpiarFechasExtra();
+  document.getElementById("bloqueFechasExtra").classList.remove("oculto");
+
+  EDITING_IMAGEN_URL = item.imagenUrl || null;
+  document.getElementById("titulo").value = item.nombre || "";
+  document.getElementById("tallerista").value = item.tallerista || "";
+  document.getElementById("capacidad").value = item.personas || "";
+  document.getElementById("precio").value = item.precio != null ? item.precio : "";
+  document.getElementById("coffeeBreak").value = item.coffeeBreak || "";
+  document.getElementById("contactoWhatsapp").value = item.whatsapp || "";
+  document.getElementById("contactoInstagram").value = item.instagram || "";
+  document.getElementById("descripcionTaller").value = item.descripcion || "";
+
+  document.getElementById("tituloForm").textContent = "🔁 Repetir taller — elige la nueva fecha";
+  document.getElementById("btnGuardar").textContent = "Guardar taller";
+
+  document.querySelector(".panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("fecha").focus();
+}
 
 function setCampoRequerido(id, requerido) {
   const el = document.getElementById(id);
