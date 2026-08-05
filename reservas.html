@@ -193,8 +193,12 @@
         <input type="text" id="plataforma" placeholder="Ej: Mauricio, teléfono">
       </div>
       <div class="full campo-reserva">
-        <label for="nota">Descripción del taller (opcional)</label>
+        <label for="nota">Nota de la reserva (se muestra en la tarjeta, para coordinar con el cliente)</label>
         <textarea id="nota" placeholder="Detalles adicionales..."></textarea>
+      </div>
+      <div class="full campo-reserva">
+        <label for="notaInterna">Nota interna (solo para el equipo — no aparece en la tarjeta)</label>
+        <textarea id="notaInterna" placeholder="Ej: confirmado manualmente porque el mensaje no llegó al sistema..."></textarea>
       </div>
 
       <!-- Campos de TALLER -->
@@ -328,6 +332,7 @@ async function cargarTodo() {
     correo: r.correo || "",
     rut: r.rut || "",
     nota: r.nota || "",
+    notaInterna: r.nota_interna || "",
     plataforma: r.plataforma || "",
     estado: (r.estado || "").toLowerCase()
   }));
@@ -557,6 +562,7 @@ function iniciarEdicion(idComposite) {
     document.getElementById("personas").value = item.personas || "";
     document.getElementById("plataforma").value = item.plataforma || "";
     document.getElementById("nota").value = item.nota || "";
+    document.getElementById("notaInterna").value = item.notaInterna || "";
   } else {
     EDITING_IMAGEN_URL = item.imagenUrl || null;
     document.getElementById("titulo").value = item.nombre || "";
@@ -778,6 +784,7 @@ document.getElementById("formReserva").addEventListener("submit", async (e) => {
       personas: parseInt(document.getElementById("personas").value, 10),
       plataforma: document.getElementById("plataforma").value.trim(),
       nota: document.getElementById("nota").value.trim() || null,
+      nota_interna: document.getElementById("notaInterna").value.trim() || null,
       estado: "activa"
     };
     url = SUPABASE_URL + "/rest/v1/reservas";
