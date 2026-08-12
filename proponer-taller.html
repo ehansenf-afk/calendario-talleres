@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proponer un taller — Casa Turquesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Inter', Arial, sans-serif;
+    background: #efe9df; color: #2b2420; min-height: 100vh;
+    display: flex; align-items: flex-start; justify-content: center;
+  }
+  .phone {
+    max-width: 560px; width: 100%; min-height: 100vh;
+    background: #fbf9f5; box-shadow: 0 0 60px rgba(0,0,0,0.08);
+    position: relative;
+  }
+  .hero {
+    padding: 30px 26px 20px;
+    background: linear-gradient(180deg, rgba(0,20,20,0.10) 0%, rgba(0,16,18,0.85) 100%),
+      radial-gradient(120% 100% at 15% 0%, #10cfc9 0%, #007a8a 55%, #003d42 100%);
+    color: #fff;
+  }
+  .hero-eyebrow { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.75; margin: 0 0 6px; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; margin: 0; line-height: 1.15; }
+  .hero-sub { font-size: 13px; opacity: 0.85; margin-top: 8px; line-height: 1.5; }
+
+  .content { padding: 26px 26px 50px; }
+  .section-label {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: #10a89f; font-weight: 600; margin: 26px 0 12px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  label { display: block; font-size: 12px; color: #8a7a68; margin: 12px 0 5px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid #e3dbcb; border-radius: 8px;
+    background: #fff; font-size: 14px; color: #2b2420; font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #10a89f; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-err { font-size: 11px; color: #c0392b; margin-top: 3px; min-height: 14px; }
+
+  .modo-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modo-tab {
+    padding: 12px; border-radius: 8px; border: 1.5px solid #e3dbcb; background: #fff;
+    font-size: 13px; font-weight: 600; color: #8a7a68; cursor: pointer; text-align: center;
+  }
+  .modo-tab.activo { border-color: #10a89f; color: #007a8a; background: #eafbfa; }
+
+  .buscador-wrap { display: none; }
+  .buscador-wrap.show { display: block; }
+  #buscarAnterior { margin-bottom: 8px; }
+  .lista-anteriores { max-height: 260px; overflow-y: auto; border: 1px solid #e3dbcb; border-radius: 8px; }
+  .item-anterior {
+    padding: 11px 14px; border-bottom: 1px solid #efe9df; cursor: pointer; font-size: 13px;
+  }
+  .item-anterior:last-child { border-bottom: none; }
+  .item-anterior:hover { background: #eafbfa; }
+  .item-anterior .nom { font-weight: 700; color: #1D252C; }
+  .item-anterior .det { font-size: 11px; color: #8a7a68; margin-top: 2px; }
+  .vacio-lista { padding: 14px; text-align: center; font-size: 12.5px; color: #8a7a68; }
+  .elegido-badge {
+    display: none; align-items: center; justify-content: space-between; gap: 8px;
+    background: #eafbfa; border: 1px solid #10a89f; border-radius: 8px; padding: 10px 14px;
+    font-size: 12.5px; margin-top: 10px;
+  }
+  .elegido-badge.show { display: flex; }
+  .elegido-badge button { background: none; border: none; color: #007a8a; font-weight: 700; cursor: pointer; font-size: 12px; }
+
+  .form-datos { display: none; }
+  .form-datos.show { display: block; }
+
+  .fechas-lista { display: flex; flex-direction: column; gap: 8px; }
+  .fila-fecha { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .fila-fecha button { background: none; border: 1px solid #e3dbcb; border-radius: 6px; width: 38px; height: 38px; cursor: pointer; color: #c0392b; font-size: 16px; }
+  #btnAgregarFecha { margin-top: 8px; background: none; border: 1px dashed #c9bfa9; border-radius: 8px; padding: 9px; width: 100%; font-size: 12.5px; color: #8a7a68; cursor: pointer; font-family: inherit; }
+
+  #btn {
+    width: 100%; margin-top: 28px; padding: 15px; border: none; border-radius: 10px;
+    background: #1D252C; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: inherit;
+  }
+  #btn:disabled { opacity: 0.6; cursor: default; }
+  .msg { text-align: center; font-size: 13px; margin-top: 12px; min-height: 18px; }
+  .msg.err { color: #c0392b; }
+  .success2 { text-align: center; padding: 50px 26px; }
+  .icon2 { width: 56px; height: 56px; border-radius: 50%; background: #10a89f; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 18px; }
+  .success2 h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin: 0 0 6px; color: #1D252C; }
+  .sub2 { color: #8a7a68; font-size: 13.5px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="phone" id="card">
+  <div class="hero">
+    <div class="hero-eyebrow">Casa Turquesa · Talleres</div>
+    <div class="hero-title">Proponer un taller</div>
+    <div class="hero-sub">Cuéntanos los detalles de tu taller. Lo revisamos y te confirmamos por WhatsApp antes de publicarlo.</div>
+  </div>
+  <div class="content">
+    <div class="section-label">¿Es nuevo o repites un taller anterior?</div>
+    <div class="modo-tabs">
+      <div class="modo-tab activo" id="tabNuevo">🆕 Taller nuevo</div>
+      <div class="modo-tab" id="tabRepetir">🔁 Repetir uno anterior</div>
+    </div>
+
+    <div class="buscador-wrap" id="buscadorWrap">
+      <label style="margin-top:18px;">Busca tu taller</label>
+      <input type="text" id="buscarAnterior" placeholder="Escribe el nombre del taller o tu nombre...">
+      <div class="lista-anteriores" id="listaAnteriores"><div class="vacio-lista">Cargando...</div></div>
+      <div class="elegido-badge" id="elegidoBadge">
+        <span>✅ Usando datos de: <strong id="elegidoNombre"></strong></span>
+        <button type="button" id="btnQuitarElegido">Quitar</button>
+      </div>
+    </div>
+
+    <form id="form" class="form-datos" novalidate>
+      <div class="section-label">Datos del taller</div>
+      <label>Título del taller</label>
+      <input type="text" id="titulo" required>
+      <label>Descripción</label>
+      <textarea id="descripcion" placeholder="De qué se trata, para quién es, qué incluye..."></textarea>
+      <label>Tu nombre (tallerista / facilitador)</label>
+      <input type="text" id="tallerista" required>
+
+      <div class="section-label">Contacto</div>
+      <div class="row2">
+        <div>
+          <label>WhatsApp de contacto</label>
+          <input type="text" id="contactoWhatsapp" placeholder="+56 9 1234 5678">
+        </div>
+        <div>
+          <label>Instagram (opcional)</label>
+          <input type="text" id="contactoInstagram" placeholder="@usuario">
+        </div>
+      </div>
+      <div class="field-err" id="errContacto"></div>
+
+      <div class="section-label">Cupos y precio</div>
+      <div class="row2">
+        <div>
+          <label>Cupos disponibles</label>
+          <input type="number" id="capacidad" min="1">
+        </div>
+        <div>
+          <label>Precio (CLP)</label>
+          <input type="number" id="precio" min="0" step="1000">
+        </div>
+      </div>
+      <label>Café / colación incluida (opcional)</label>
+      <input type="text" id="coffeeBreak" placeholder="Ej: café y algo dulce">
+
+      <div class="section-label">Fecha(s) y hora</div>
+      <div class="fechas-lista" id="fechasLista"></div>
+      <button type="button" id="btnAgregarFecha">+ Agregar otra fecha</button>
+      <div class="field-err" id="errFechas"></div>
+
+      <button type="submit" id="btn">Enviar propuesta</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
+const PROPONER_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/proponer-taller";
+
+let TALLERES_ANTERIORES = [];
+let MODO = "nuevo";
+
+function fechaHoraMin() {
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function crearFilaFecha(fecha, hora) {
+  const wrap = document.createElement("div");
+  wrap.className = "fila-fecha";
+  wrap.innerHTML = `
+    <div class="row2" style="margin:0;">
+      <input type="date" class="fFecha" min="${fechaHoraMin()}" value="${fecha||''}">
+      <input type="time" class="fHora" value="${hora||''}">
+    </div>
+    <button type="button" class="btnQuitarFecha">✕</button>`;
+  wrap.querySelector(".btnQuitarFecha").addEventListener("click", () => {
+    if (document.querySelectorAll(".fila-fecha").length > 1) wrap.remove();
+  });
+  return wrap;
+}
+document.getElementById("fechasLista").appendChild(crearFilaFecha());
+document.getElementById("btnAgregarFecha").addEventListener("click", () => {
+  document.getElementById("fechasLista").appendChild(crearFilaFecha());
+});
+
+document.getElementById("tabNuevo").addEventListener("click", () => cambiarModo("nuevo"));
+document.getElementById("tabRepetir").addEventListener("click", () => cambiarModo("repetir"));
+
+function cambiarModo(m) {
+  MODO = m;
+  document.getElementById("tabNuevo").classList.toggle("activo", m === "nuevo");
+  document.getElementById("tabRepetir").classList.toggle("activo", m === "repetir");
+  document.getElementById("buscadorWrap").classList.toggle("show", m === "repetir");
+  document.getElementById("form").classList.toggle("show", m === "nuevo");
+  if (m === "repetir") {
+    document.getElementById("elegidoBadge").classList.remove("show");
+    document.getElementById("form").classList.remove("show");
+    if (!TALLERES_ANTERIORES.length) cargarAnteriores();
+  }
+}
+
+async function cargarAnteriores() {
+  const lista = document.getElementById("listaAnteriores");
+  try {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/talleres?select=titulo,descripcion,tallerista,capacidad,precio,contacto_whatsapp,contacto_instagram,coffee_break,fecha&order=fecha.desc", {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }
+    });
+    const rows = await res.json();
+    const vistos = new Set();
+    TALLERES_ANTERIORES = rows.filter(t => {
+      const clave = (t.titulo || "") + "|" + (t.tallerista || "");
+      if (vistos.has(clave)) return false;
+      vistos.add(clave);
+      return true;
+    });
+    renderAnteriores(TALLERES_ANTERIORES);
+  } catch (e) {
+    lista.innerHTML = '<div class="vacio-lista">No se pudo cargar la lista. Puedes elegir "Taller nuevo" y escribir los datos manualmente.</div>';
+  }
+}
+
+function renderAnteriores(items) {
+  const lista = document.getElementById("listaAnteriores");
+  if (!items.length) { lista.innerHTML = '<div class="vacio-lista">No encontramos talleres anteriores con ese nombre.</div>'; return; }
+  lista.innerHTML = "";
+  items.forEach((t, i) => {
+    const div = document.createElement("div");
+    div.className = "item-anterior";
+    div.innerHTML = `<div class="nom">${t.titulo}</div><div class="det">${t.tallerista || "sin tallerista"} · última vez: ${t.fecha || "?"}</div>`;
+    div.addEventListener("click", () => elegirAnterior(t));
+    lista.appendChild(div);
+  });
+}
+
+document.getElementById("buscarAnterior").addEventListener("input", (e) => {
+  const q = e.target.value.toLowerCase();
+  renderAnteriores(TALLERES_ANTERIORES.filter(t => (t.titulo||"").toLowerCase().includes(q) || (t.tallerista||"").toLowerCase().includes(q)));
+});
+
+function elegirAnterior(t) {
+  document.getElementById("titulo").value = t.titulo || "";
+  document.getElementById("descripcion").value = t.descripcion || "";
+  document.getElementById("tallerista").value = t.tallerista || "";
+  document.getElementById("contactoWhatsapp").value = t.contacto_whatsapp || "";
+  document.getElementById("contactoInstagram").value = t.contacto_instagram || "";
+  document.getElementById("capacidad").value = t.capacidad || "";
+  document.getElementById("precio").value = t.precio || "";
+  document.getElementById("coffeeBreak").value = t.coffee_break || "";
+  document.getElementById("fechasLista").innerHTML = "";
+  document.getElementById("fechasLista").appendChild(crearFilaFecha());
+
+  document.getElementById("elegidoNombre").textContent = t.titulo;
+  document.getElementById("elegidoBadge").classList.add("show");
+  document.getElementById("form").classList.add("show");
+  document.getElementById("form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.getElementById("btnQuitarElegido").addEventListener("click", () => {
+  document.getElementById("form").reset();
+  document.getElementById("fechasLista").innerHTML = "";
+  document.getElementById("fechasLista").appendChild(crearFilaFecha());
+  document.getElementById("elegidoBadge").classList.remove("show");
+  document.getElementById("form").classList.remove("show");
+});
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("btn");
+  const msg = document.getElementById("msg");
+  msg.textContent = ""; msg.className = "msg";
+  document.getElementById("errContacto").textContent = "";
+  document.getElementById("errFechas").textContent = "";
+
+  const contactoWhatsapp = document.getElementById("contactoWhatsapp").value.trim();
+  const contactoInstagram = document.getElementById("contactoInstagram").value.trim();
+  if (!contactoWhatsapp && !contactoInstagram) {
+    document.getElementById("errContacto").textContent = "Déjanos al menos un WhatsApp o Instagram para poder confirmarte.";
+    return;
+  }
+
+  const fechas = Array.from(document.querySelectorAll(".fila-fecha")).map(f => ({
+    fecha: f.querySelector(".fFecha").value,
+    hora: f.querySelector(".fHora").value
+  })).filter(f => f.fecha && f.hora);
+
+  if (!fechas.length) {
+    document.getElementById("errFechas").textContent = "Agrega al menos una fecha y hora.";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  const body = {
+    titulo: document.getElementById("titulo").value.trim(),
+    descripcion: document.getElementById("descripcion").value.trim() || null,
+    tallerista: document.getElementById("tallerista").value.trim(),
+    contacto_whatsapp: contactoWhatsapp || null,
+    contacto_instagram: contactoInstagram || null,
+    capacidad: document.getElementById("capacidad").value ? parseInt(document.getElementById("capacidad").value, 10) : null,
+    precio: document.getElementById("precio").value ? parseInt(document.getElementById("precio").value, 10) : null,
+    coffee_break: document.getElementById("coffeeBreak").value.trim() || null,
+    fechas
+  };
+
+  try {
+    const resp = await fetch(PROPONER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "error desconocido");
+
+    document.getElementById("card").innerHTML = `
+      <div class="success2">
+        <div class="icon2">&#10003;</div>
+        <h2>¡Propuesta enviada!</h2>
+        <p class="sub2">Gracias, ${body.tallerista}. Recibimos los datos de "${body.titulo}".<br><br>Lo vamos a revisar y te confirmamos por WhatsApp antes de publicarlo en el calendario.</p>
+      </div>`;
+  } catch (err) {
+    msg.textContent = "Hubo un problema al enviar tu propuesta. Intenta de nuevo.";
+    msg.className = "msg err";
+    btn.disabled = false;
+    btn.textContent = "Enviar propuesta";
+  }
+});
+</script>
+</body>
+</html>
