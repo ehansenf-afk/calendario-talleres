@@ -139,6 +139,8 @@
           <input type="text" id="contactoInstagram" placeholder="@usuario">
         </div>
       </div>
+      <label>Correo (opcional, además del WhatsApp)</label>
+      <input type="email" id="contactoCorreo" placeholder="tucorreo@ejemplo.com">
       <div class="field-err" id="errContacto"></div>
 
       <div class="section-label">Cupos y precio</div>
@@ -217,7 +219,7 @@ function cambiarModo(m) {
 async function cargarAnteriores() {
   const lista = document.getElementById("listaAnteriores");
   try {
-    const res = await fetch(SUPABASE_URL + "/rest/v1/talleres?select=titulo,descripcion,tallerista,capacidad,precio,contacto_whatsapp,contacto_instagram,coffee_break,fecha&order=fecha.desc", {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/talleres?select=titulo,descripcion,tallerista,capacidad,precio,contacto_whatsapp,contacto_instagram,contacto_correo,coffee_break,fecha&order=fecha.desc", {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY }
     });
     const rows = await res.json();
@@ -258,6 +260,7 @@ function elegirAnterior(t) {
   document.getElementById("tallerista").value = t.tallerista || "";
   document.getElementById("contactoWhatsapp").value = t.contacto_whatsapp || "";
   document.getElementById("contactoInstagram").value = t.contacto_instagram || "";
+  document.getElementById("contactoCorreo").value = t.contacto_correo || "";
   document.getElementById("capacidad").value = t.capacidad || "";
   document.getElementById("precio").value = t.precio || "";
   document.getElementById("coffeeBreak").value = t.coffee_break || "";
@@ -311,6 +314,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
     tallerista: document.getElementById("tallerista").value.trim(),
     contacto_whatsapp: contactoWhatsapp || null,
     contacto_instagram: contactoInstagram || null,
+    contacto_correo: document.getElementById("contactoCorreo").value.trim() || null,
     capacidad: document.getElementById("capacidad").value ? parseInt(document.getElementById("capacidad").value, 10) : null,
     precio: document.getElementById("precio").value ? parseInt(document.getElementById("precio").value, 10) : null,
     coffee_break: document.getElementById("coffeeBreak").value.trim() || null,
