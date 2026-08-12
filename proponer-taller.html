@@ -132,15 +132,15 @@
       <div class="row2">
         <div>
           <label>WhatsApp de contacto</label>
-          <input type="text" id="contactoWhatsapp" placeholder="+56 9 1234 5678">
+          <input type="text" id="contactoWhatsapp" placeholder="+56 9 1234 5678" required>
         </div>
         <div>
-          <label>Instagram (opcional)</label>
-          <input type="text" id="contactoInstagram" placeholder="@usuario">
+          <label>Instagram</label>
+          <input type="text" id="contactoInstagram" placeholder="@usuario" required>
         </div>
       </div>
-      <label>Correo (opcional, además del WhatsApp)</label>
-      <input type="email" id="contactoCorreo" placeholder="tucorreo@ejemplo.com">
+      <label>Correo</label>
+      <input type="email" id="contactoCorreo" placeholder="tucorreo@ejemplo.com" required>
       <div class="field-err" id="errContacto"></div>
 
       <div class="section-label">Cupos y precio</div>
@@ -290,8 +290,13 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 
   const contactoWhatsapp = document.getElementById("contactoWhatsapp").value.trim();
   const contactoInstagram = document.getElementById("contactoInstagram").value.trim();
-  if (!contactoWhatsapp && !contactoInstagram) {
-    document.getElementById("errContacto").textContent = "Déjanos al menos un WhatsApp o Instagram para poder confirmarte.";
+  const contactoCorreo = document.getElementById("contactoCorreo").value.trim();
+  if (!contactoWhatsapp || !contactoInstagram || !contactoCorreo) {
+    document.getElementById("errContacto").textContent = "WhatsApp, Instagram y correo son obligatorios.";
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contactoCorreo)) {
+    document.getElementById("errContacto").textContent = "Ingresa un correo válido.";
     return;
   }
 
