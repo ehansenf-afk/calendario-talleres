@@ -392,9 +392,15 @@ function render() {
   let startMonth = hoyDate.getUTCMonth();
   let endYear = startYear, endMonth = startMonth + 1;
   if (endMonth > 11) { endMonth = 0; endYear++; }
+  // Tope de seguridad: un dato con una fecha mal escrita (ej. año con un digito de mas)
+  // no debe poder hacer que la pagina intente dibujar decenas de miles de meses y se cuelgue.
+  const TOPE_MESES_ADELANTE = 24;
+  const limiteYear = startMonth + TOPE_MESES_ADELANTE >= 12 ? startYear + Math.ceil((startMonth + TOPE_MESES_ADELANTE - 11) / 12) : startYear;
+  const limiteMonth = ((startMonth + TOPE_MESES_ADELANTE) % 12);
   items.forEach(r => {
     const d = parseISO(r.fecha);
     const y = d.getUTCFullYear(), m = d.getUTCMonth();
+    if (isNaN(d.getTime()) || y > limiteYear || (y === limiteYear && m > limiteMonth)) return;
     if (y > endYear || (y === endYear && m > endMonth)) { endYear = y; endMonth = m; }
   });
 
