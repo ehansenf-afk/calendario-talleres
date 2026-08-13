@@ -179,7 +179,7 @@ async function cargarTalleres() {
     whatsapp: r.contacto_whatsapp || "",
     instagram: r.contacto_instagram || "",
     desc: r.descripcion || "",
-    imagenUrl: r.imagen_url || null
+    imagenesUrls: (Array.isArray(r.imagenes_urls) && r.imagenes_urls.length) ? r.imagenes_urls : (r.imagen_url ? [r.imagen_url] : [])
   }));
 }
 
@@ -237,7 +237,7 @@ function render(talleres) {
           <span>🎨 ${t.tallerista}</span>
         </div>
         <p class="desc">${t.desc}</p>
-        ${t.imagenUrl ? `<img src="${t.imagenUrl}" alt="Flyer de ${t.titulo}" style="max-width:100%;width:240px;border-radius:6px;margin:8px 0;display:block;">` : ""}
+        ${t.imagenesUrls.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">${t.imagenesUrls.map(u => `<img src="${u}" alt="Flyer de ${t.titulo}" style="max-width:100%;width:240px;border-radius:6px;display:block;">`).join("")}</div>` : ""}
         <p class="contact">☎️ <a href="https://wa.me/${t.whatsapp.replace(/\D/g,"")}" target="_blank" rel="noopener">${t.whatsapp}</a> ${t.instagram ? "· " + t.instagram : ""}</p>
       </div>
       <div class="side">
