@@ -143,6 +143,28 @@
 const SUPABASE_URL = "https://udsvumfwczyormmprizm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkc3Z1bWZ3Y3p5b3JtbXByaXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg1MzgsImV4cCI6MjA5NTM5NDUzOH0.h3MzXhUrIkwssCCwWSohg9l40weroZUP81NJ3PLIAxE";
 
+function abrirLightbox(url) {
+  let overlay = document.getElementById("lightboxOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "lightboxOverlay";
+    overlay.style.cssText = "display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;padding:24px;";
+    overlay.innerHTML = '<img id="lightboxImg" style="max-width:95vw;max-height:95vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">';
+    overlay.addEventListener("click", cerrarLightbox);
+    document.body.appendChild(overlay);
+    document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarLightbox(); });
+  }
+  document.getElementById("lightboxImg").src = url;
+  overlay.style.display = "flex";
+}
+function cerrarLightbox() {
+  const overlay = document.getElementById("lightboxOverlay");
+  if (overlay) overlay.style.display = "none";
+}
+document.addEventListener("click", e => {
+  if (e.target.matches("img.lightbox-img")) abrirLightbox(e.target.src);
+});
+
 const DOW = ["Lun","Mar","Mié","Jué","Vie","Sáb","Dom"];
 function mondayIndex(nativeDay) { return (nativeDay + 6) % 7; }
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -237,7 +259,7 @@ function render(talleres) {
           <span>🎨 ${t.tallerista}</span>
         </div>
         <p class="desc">${t.desc}</p>
-        ${t.imagenesUrls.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">${t.imagenesUrls.map(u => `<img src="${u}" alt="Flyer de ${t.titulo}" style="max-width:100%;width:240px;border-radius:6px;display:block;">`).join("")}</div>` : ""}
+        ${t.imagenesUrls.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">${t.imagenesUrls.map(u => `<img src="${u}" alt="Flyer de ${t.titulo}" class="lightbox-img" style="max-width:100%;width:240px;border-radius:6px;display:block;cursor:zoom-in;">`).join("")}</div>` : ""}
         <p class="contact">☎️ <a href="https://wa.me/${t.whatsapp.replace(/\D/g,"")}" target="_blank" rel="noopener">${t.whatsapp}</a> ${t.instagram ? "· " + t.instagram : ""}</p>
       </div>
       <div class="side">
