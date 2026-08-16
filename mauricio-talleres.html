@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talleres — Casa Turquesa</title>
+<style>
+  :root {
+    --paper: #F0EEE8; --card: #FFFFFF; --ink: #1D252C; --ink-soft: #5B6664;
+    --line: #E8E4DA; --teal: #007A8A; --turquesa: #10CFC9; --danger: #B3453A;
+    --shadow: 0 1px 2px rgba(29,37,44,0.05), 0 20px 40px rgba(29,37,44,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper:#14201E; --card:#1B2826; --ink:#EDEAE2; --ink-soft:#A9AFA9; --line:#2C3A37; --teal:#4FC7C0; --turquesa:#6FE0DA; --danger:#E08A80; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body { background:var(--paper); color:var(--ink); font-family: Helvetica, Arial, sans-serif; min-height:100vh; padding:24px 16px 60px; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--ink-soft); font-size: 13px; margin: 0 0 24px; }
+  .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  label { display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin: 10px 0 4px; }
+  input, textarea, select { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); font-size:14px; font-family:inherit; }
+  textarea { min-height: 70px; resize: vertical; }
+  button { cursor:pointer; border:none; border-radius:8px; font-weight:700; font-size:14px; padding:11px 18px; }
+  .btn-primario { background:var(--teal); color:#fff; }
+  .btn-secundario { background:none; border:1px solid var(--line); color:var(--ink-soft); }
+  .btn-peligro { background:none; border:1px solid var(--danger); color:var(--danger); }
+  .fila-botones { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .msg { font-size:12.5px; margin-top:10px; min-height: 16px; }
+  .taller-item { border-top:1px solid var(--line); padding:12px 0; }
+  .taller-item:first-child { border-top:none; }
+  .taller-titulo { font-weight:700; font-size:14.5px; }
+  .taller-meta { font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .taller-acciones { margin-top:8px; display:flex; gap:8px; }
+  .taller-acciones button { padding:6px 12px; font-size:12px; }
+  #vistaLogin { max-width: 360px; margin: 60px auto 0; }
+  #vistaApp { display:none; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .oculto { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="vistaLogin" class="card">
+    <h1>🎨 Talleres — Casa Turquesa</h1>
+    <p class="sub">Acceso de Mauricio para administrar el calendario de talleres.</p>
+    <label>Contraseña</label>
+    <input type="password" id="loginPassword" placeholder="Contraseña">
+    <div class="fila-botones"><button class="btn-primario" id="btnEntrar" style="flex:1;">Entrar</button></div>
+    <p class="msg" id="loginMsg"></p>
+  </div>
+
+  <div id="vistaApp">
+    <h1>🎨 Talleres — Casa Turquesa</h1>
+    <p class="sub">Acá puedes ver, agregar, editar o eliminar talleres del calendario.</p>
+
+    <div class="card">
+      <button class="btn-primario" id="btnNuevo">+ Nuevo taller</button>
+    </div>
+
+    <div class="card oculto" id="formTaller">
+      <label>Título</label>
+      <input type="text" id="fTitulo" placeholder="Nombre del taller">
+      <label>Descripción</label>
+      <textarea id="fDescripcion" placeholder="Detalle del taller"></textarea>
+      <div class="grid2">
+        <div><label>Fecha</label><input type="date" id="fFecha"></div>
+        <div><label>Hora</label><input type="time" id="fHora"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Capacidad</label><input type="number" id="fCapacidad" placeholder="Ej: 10"></div>
+        <div><label>Precio</label><input type="number" id="fPrecio" placeholder="Ej: 20000"></div>
+      </div>
+      <label>Tallerista</label>
+      <input type="text" id="fTallerista" placeholder="Nombre del tallerista">
+      <label>Estado</label>
+      <select id="fEstado">
+        <option value="activo">Activo</option>
+        <option value="cancelado">Cancelado</option>
+        <option value="finalizado">Finalizado</option>
+      </select>
+      <div class="grid2">
+        <div><label>WhatsApp de contacto</label><input type="text" id="fWhatsapp" placeholder="56912345678"></div>
+        <div><label>Instagram de contacto</label><input type="text" id="fInstagram" placeholder="@usuario"></div>
+      </div>
+      <label>Coffee break</label>
+      <input type="text" id="fCoffeeBreak" placeholder="Ej: Pack Dulce">
+      <div class="fila-botones">
+        <button class="btn-primario" id="btnGuardarTaller">Guardar</button>
+        <button class="btn-secundario" type="button" id="btnCancelarTaller">Cancelar</button>
+      </div>
+      <p class="msg" id="formMsg"></p>
+    </div>
+
+    <div class="card">
+      <div id="listaTalleres"><p class="sub">Cargando...</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WEBHOOK_URL = "https://mis-negocios-n8n.u7xiga.easypanel.host/webhook/mauricio-talleres";
+let PASSWORD = sessionStorage.getItem("mt_password") || "";
+let TALLERES = [];
+let EDITANDO_ID = null;
+
+async function llamar(body) {
+  const res = await fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign({ password: PASSWORD }, body)) });
+  return res.json();
+}
+
+async function entrar() {
+  const msg = document.getElementById("loginMsg");
+  const pass = document.getElementById("loginPassword").value.trim();
+  if (!pass) { msg.textContent = "Ingresa la contraseña."; return; }
+  msg.textContent = "Verificando...";
+  PASSWORD = pass;
+  const r = await llamar({ accion: "listar" });
+  if (!r.ok) { msg.textContent = "❌ " + (r.error || "Contraseña incorrecta"); PASSWORD = ""; return; }
+  sessionStorage.setItem("mt_password", pass);
+  document.getElementById("vistaLogin").style.display = "none";
+  document.getElementById("vistaApp").style.display = "block";
+  TALLERES = r.talleres || [];
+  renderLista();
+}
+document.getElementById("btnEntrar").addEventListener("click", entrar);
+document.getElementById("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
+
+function fmtFecha(f) {
+  if (!f) return "sin fecha";
+  const [y, m, d] = f.split("-");
+  return d + "/" + m + "/" + y;
+}
+function renderLista() {
+  const wrap = document.getElementById("listaTalleres");
+  if (!TALLERES.length) { wrap.innerHTML = '<p class="sub">Sin talleres registrados todavía.</p>'; return; }
+  const ordenados = [...TALLERES].sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
+  wrap.innerHTML = ordenados.map(t => `
+    <div class="taller-item">
+      <div class="taller-titulo">${t.titulo || "Sin título"} ${t.estado === "cancelado" ? "❌" : t.estado === "finalizado" ? "✅" : ""}</div>
+      <div class="taller-meta">📅 ${fmtFecha(t.fecha)}${t.hora ? " · " + t.hora.slice(0,5) : ""} ${t.tallerista ? " · 🎨 " + t.tallerista : ""} ${t.capacidad ? " · 👥 " + t.capacidad + " cupos" : ""} ${t.precio ? " · $" + t.precio : ""}</div>
+      <div class="taller-acciones">
+        <button class="btn-secundario" data-editar="${t.id}">✏️ Editar</button>
+        <button class="btn-peligro" data-eliminar="${t.id}">🗑️ Eliminar</button>
+      </div>
+    </div>`).join("");
+  wrap.querySelectorAll("[data-editar]").forEach(btn => btn.addEventListener("click", () => abrirEdicion(btn.dataset.editar)));
+  wrap.querySelectorAll("[data-eliminar]").forEach(btn => btn.addEventListener("click", () => eliminarTaller(btn.dataset.eliminar)));
+}
+
+function limpiarForm() {
+  ["fTitulo","fDescripcion","fFecha","fHora","fCapacidad","fPrecio","fTallerista","fWhatsapp","fInstagram","fCoffeeBreak"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("fEstado").value = "activo";
+  document.getElementById("formMsg").textContent = "";
+}
+document.getElementById("btnNuevo").addEventListener("click", () => {
+  EDITANDO_ID = null;
+  limpiarForm();
+  document.getElementById("formTaller").classList.remove("oculto");
+});
+document.getElementById("btnCancelarTaller").addEventListener("click", () => {
+  document.getElementById("formTaller").classList.add("oculto");
+});
+
+function abrirEdicion(id) {
+  const t = TALLERES.find(x => x.id === id);
+  if (!t) return;
+  EDITANDO_ID = id;
+  document.getElementById("fTitulo").value = t.titulo || "";
+  document.getElementById("fDescripcion").value = t.descripcion || "";
+  document.getElementById("fFecha").value = t.fecha || "";
+  document.getElementById("fHora").value = t.hora ? t.hora.slice(0,5) : "";
+  document.getElementById("fCapacidad").value = t.capacidad ?? "";
+  document.getElementById("fPrecio").value = t.precio ?? "";
+  document.getElementById("fTallerista").value = t.tallerista || "";
+  document.getElementById("fEstado").value = t.estado || "activo";
+  document.getElementById("fWhatsapp").value = t.contacto_whatsapp || "";
+  document.getElementById("fInstagram").value = t.contacto_instagram || "";
+  document.getElementById("fCoffeeBreak").value = t.coffee_break || "";
+  document.getElementById("formMsg").textContent = "";
+  document.getElementById("formTaller").classList.remove("oculto");
+  document.getElementById("formTaller").scrollIntoView({ behavior: "smooth" });
+}
+
+document.getElementById("btnGuardarTaller").addEventListener("click", async () => {
+  const msg = document.getElementById("formMsg");
+  const titulo = document.getElementById("fTitulo").value.trim();
+  if (!titulo) { msg.textContent = "Falta el título del taller."; return; }
+  const datos = {
+    titulo,
+    descripcion: document.getElementById("fDescripcion").value.trim(),
+    fecha: document.getElementById("fFecha").value,
+    hora: document.getElementById("fHora").value,
+    capacidad: document.getElementById("fCapacidad").value,
+    precio: document.getElementById("fPrecio").value,
+    tallerista: document.getElementById("fTallerista").value.trim(),
+    estado: document.getElementById("fEstado").value,
+    contacto_whatsapp: document.getElementById("fWhatsapp").value.trim(),
+    contacto_instagram: document.getElementById("fInstagram").value.trim(),
+    coffee_break: document.getElementById("fCoffeeBreak").value.trim()
+  };
+  msg.textContent = "Guardando...";
+  const r = await llamar(Object.assign({ accion: EDITANDO_ID ? "editar" : "crear", id: EDITANDO_ID }, datos));
+  if (!r.ok) { msg.textContent = "❌ " + (r.error || "No se pudo guardar."); return; }
+  document.getElementById("formTaller").classList.add("oculto");
+  const listado = await llamar({ accion: "listar" });
+  TALLERES = listado.talleres || [];
+  renderLista();
+});
+
+async function eliminarTaller(id) {
+  if (!confirm("¿Eliminar este taller? Esta acción no se puede deshacer.")) return;
+  const r = await llamar({ accion: "eliminar", id });
+  if (!r.ok) { alert("No se pudo eliminar: " + (r.error || "")); return; }
+  TALLERES = TALLERES.filter(t => t.id !== id);
+  renderLista();
+}
+
+if (PASSWORD) {
+  llamar({ accion: "listar" }).then(r => {
+    if (r.ok) {
+      document.getElementById("vistaLogin").style.display = "none";
+      document.getElementById("vistaApp").style.display = "block";
+      TALLERES = r.talleres || [];
+      renderLista();
+    } else {
+      sessionStorage.removeItem("mt_password");
+    }
+  });
+}
+</script>
+</body>
+</html>
