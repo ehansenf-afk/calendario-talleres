@@ -161,6 +161,7 @@
         <option value="Coffee break salado ($8.000): incluye jugo natural, té o café simple (americano, expreso o capuchino) y sándwich de la casa. Valores de consumo, propina 10% aparte de manera voluntaria.">🥪 Coffee break salado — $8.000</option>
         <option value="Menú almuerzo ($8.000): incluye entrada, fondo, postre y jugo. Valores de consumo, propina 10% aparte de manera voluntaria.">🍽️ Menú almuerzo — $8.000</option>
       </select>
+      <div class="field-err" id="coffeeBreakDetalle" style="color:#8a7a68;"></div>
 
       <div class="section-label">Fecha(s) y hora</div>
       <div class="fechas-lista" id="fechasLista"></div>
@@ -259,6 +260,15 @@ document.getElementById("buscarAnterior").addEventListener("input", (e) => {
   renderAnteriores(TALLERES_ANTERIORES.filter(t => (t.titulo||"").toLowerCase().includes(q) || (t.tallerista||"").toLowerCase().includes(q)));
 });
 
+function actualizarDetalleCoffeeBreak() {
+  const sel = document.getElementById("coffeeBreak");
+  const detalle = document.getElementById("coffeeBreakDetalle");
+  const valor = sel.value;
+  const partes = valor.split(":");
+  detalle.textContent = partes.length > 1 ? partes.slice(1).join(":").trim() : "";
+}
+document.getElementById("coffeeBreak").addEventListener("change", actualizarDetalleCoffeeBreak);
+
 function elegirAnterior(t) {
   document.getElementById("titulo").value = t.titulo || "";
   document.getElementById("descripcion").value = t.descripcion || "";
@@ -269,6 +279,7 @@ function elegirAnterior(t) {
   document.getElementById("capacidad").value = t.capacidad || "";
   document.getElementById("precio").value = t.precio || "";
   document.getElementById("coffeeBreak").value = t.coffee_break || "";
+  actualizarDetalleCoffeeBreak();
   document.getElementById("fechasLista").innerHTML = "";
   document.getElementById("fechasLista").appendChild(crearFilaFecha());
 
