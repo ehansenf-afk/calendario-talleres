@@ -72,7 +72,7 @@
       </div>
       <div class="grid2">
         <div><label>Capacidad</label><input type="number" id="fCapacidad" placeholder="Ej: 10"></div>
-        <div><label>Precio</label><input type="number" id="fPrecio" placeholder="Ej: 20000"></div>
+        <div><label>Precio</label><input type="text" inputmode="numeric" autocomplete="off" id="fPrecio" placeholder="Ej: 20000" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
       </div>
       <label>Tallerista</label>
       <input type="text" id="fTallerista" placeholder="Nombre del tallerista">
@@ -196,7 +196,7 @@ document.getElementById("btnGuardarTaller").addEventListener("click", async () =
     fecha: document.getElementById("fFecha").value,
     hora: document.getElementById("fHora").value,
     capacidad: document.getElementById("fCapacidad").value,
-    precio: document.getElementById("fPrecio").value,
+    precio: document.getElementById("fPrecio").value.replace(/[^0-9]/g, ""),
     tallerista: document.getElementById("fTallerista").value.trim(),
     estado: document.getElementById("fEstado").value,
     contacto_whatsapp: document.getElementById("fWhatsapp").value.trim(),
